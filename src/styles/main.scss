@@ -1,0 +1,121 @@
+// General
+select {
+  border: 1px solid $background;
+  border-radius: 0;
+  padding: 0.3em;
+  font-size: 1.2em;
+  font-weight: 300;
+  margin-bottom: 0.5%;
+  resize: none;
+}
+select:hover {
+  cursor: pointer;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
+button {
+  background-color: $light-2;
+  color: $dark-2;
+  &:hover {
+    background-color: $grey-1;
+  }
+}
+
+h1, h2 {
+  margin: 0;
+  padding: 0;
+}
+
+// Classes
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+
+  flex: 1;
+  text-align: left;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.clickable {
+  cursor: pointer;
+}
+.non-clickable {
+  opacity: 0.5;
+}
+.spacing {
+  margin: 0.5em;
+}
+.spacing-right {
+  margin-right: 0.25em;
+}
+.spacing-x {
+  margin-right: 0.25em;
+  margin-left: 0.25em;
+}
+
+.btn {
+  border-radius: 1em;
+  padding: 0.75em;
+  display: inline-block;
+  font-weight: bold;
+  text-decoration: none;
+  border: none;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  cursor: pointer;
+}
+.btn-primary {
+  background-color: $primary;
+  color: $light-2;
+}
+.btn-primary:hover {
+  background-color: $primary-2;
+}
+.btn-secondary {
+  background-color: $background;
+  color: $light-1;
+  border: 2px solid $light-1;
+}
+.btn-secondary:hover {
+  color: $background;
+  background-color: $light-1;
+}
+.btn-big {
+  font-size: 1.5em;
+}
+
+// Media queries
+
+@media (max-width: $sm-minus) {
+  .container {
+    width: 100%;
+  }
+}
+@media (min-width: $sm) {
+  .container {
+    width: 90%;
+  }
+}
+@media (min-width: $md) {
+  .container {
+    width: 80%;
+  }
+}
+@media (min-width: $lg) {
+  .container {
+    width: 70%;
+  }
+}
+@media (min-width: $xl) {
+  .container {
+    width: 60%;
+  }
+}
