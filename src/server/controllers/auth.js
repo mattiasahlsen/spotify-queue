@@ -4,19 +4,28 @@ const router = express.Router()
 const config = require('../config')
 const queryString = require('querystring')
 
-const { generateRandomString, newQueue } = require('../lib')
+const { generateRandomString, } = require('../lib')
 
 const dev = process.env.NODE_ENV === 'development'
 
 const redirectUri = (dev ? config.server : config.origin) + '/callback'
 
-const { stateKey, accessTokenKey, refreshTokenKey } = config
+const {
+  stateKey,
+  accessTokenKey,
+  refreshTokenKey,
+  queueIdKey,
+  userIdKey,
+} = config
 
+const redirectKey = 'origin_url'
+
+const spotifyServer = 'https://api.spotify.com/v1'
 
 router.get('/login', (req, res) => {
-
   const state = generateRandomString(16)
   res.cookie(stateKey, state)
+  res.cookie(redirectKey, req.query.redirect)
 
   const scope = 'user-read-playback-state user-modify-playback-state user-read-currently-playing streaming app-remote-control'
   return res.redirect('https://accounts.spotify.com/authorize?' +
@@ -35,13 +44,25 @@ router.get('/callback', (req, res) => {
   const state = req.query.state || null
   const storedState = req.cookies ? req.cookies[stateKey] : null
 
+  const userRedirect = (req.cookies ? req.cookies[redirectKey] : null) ||
+    config.origin
+  res.clearCookie(redirectKey)
+
+  const failureRedirect = () => {
+    return res.redirect(userRedirect + '?' + 
+      queryString.stringify({
+        error: 'authentication_failure'
+      }))
+  }
+
   if (state === null || state !== storedState) {
-    return res.redirect(config.origin + '?' + 
+    return res.redirect(userRedirect + '?' + 
       queryString.stringify({
         error: 'state_mismatch'
       }))
   } else {
-    res.clearCookie(stateKey);
+    res.clearCookie(stateKey)
+    if (req.query.error === 'access_denied') return failureRedirect()
 
     const formData = new URLSearchParams()
     formData.append('grant_type', 'authorization_code')
@@ -58,10 +79,9 @@ router.get('/callback', (req, res) => {
       },
       body: formData,
     }).then(async resp => {
-      if (req.query.error === 'access_denied') return res.redirect(401, config.origin)
       if (resp.status !== 200) {
         console.log('Spotify bad status when fetching token: ' + resp.status)
-        return res.redirect(500, config.origin)
+        return failureRedirect()
       }
       try {
         const data = await resp.json()
@@ -69,84 +89,62 @@ router.get('/callback', (req, res) => {
         const refreshToken = data.refresh_token
 
         if (!accessToken || !refreshToken) {
-          return res.redirect(config.origin + '?' + 
-            queryString.stringify({
-              error: 'authentication_failure'
-            }))
+          return failureRedirect()
         }
 
-        res.cookie(accessTokenKey, accessToken);
-        res.cookie(refreshTokenKey, refreshToken);
 
-        // create queue
-        const queueId = newQueue(req.session.id)
-        queues[queueId].users[req.session.id] = testTracks
-        res.cookie(queueIdKey, queueId)
+        return fetch(spotifyServer + '/me', {
+          headers: {
+            'Authorization': 'Bearer ' + accessToken
+          }
+        }).then(async resp => {
+          if (resp.status === 200) {
+            const data = await resp.json()
+            req.session[accessTokenKey] = accessToken
+            req.session[refreshTokenKey] = refreshToken
+            req.session[userIdKey] = data.id
 
-        
-        return res.redirect(config.origin)
+            res.redirect(userRedirect)
+          } else return failureRedirect()
+        }).catch(err => {
+          return failureRedirect()
+        })
+
       } catch (err) {
-        res.redirect(500, config.origin)
         console.log(err)
+        return failureRedirect()
       }
     })
   }
 })
 
-router.get('/refreshToken', function(req, res) {
-  // requesting access token from refresh token
-  const refreshToken = req.cookies ? req.cookies[refreshTokenKey] : null
+router.get('/authenticate', (req, res, next) => {
+  let userId = req.session[userIdKey]
 
-  if (!refreshToken) {
-    console.log('No refresh token.')
-    return res.status(401).end()
+  if (!userId) {
+    userId = generateRandomString(16)
+    req.session[userIdKey] = userId
   }
-
-  const formData = new URLSearchParams()
-  formData.append('grant_type', 'refresh_token')
-  formData.append('refresh_token', refreshToken)
-
-  return fetch('https://accounts.spotify.com/api/token', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' +
-        new Buffer(config.clientId + ':' + config.clientSecret).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: formData,
-  }).then(async resp => {
-    if (req.query.error === 'access_denied') return res.redirect(401, config.origin)
-    if (resp.status !== 200) {
-      console.log('Spotify bad status when refreshing token: ' + resp.status)
-      return res.redirect(500, config.origin)
-    }
-    try {
-      const data = await resp.json()
-      const accessToken = data.access_token
-
-      if (!accessToken) {
-        console.log('No access token')
-        return res.status(500).end()
-      }
-
-      res.cookie(accessTokenKey, accessToken);
-      return res.json({accessToken})
-    } catch (err) {
-      res.status(500).end()
-      console.log(err)
-    }
+  return res.json({
+    authorized: !!req.session[refreshTokenKey],
+    userId,
   })
 })
 
-router.get('/accessToken', (req, res, next) => {
-  const accessToken = req.cookies ? req.cookies[accessTokenKey] : null
-  return res.json({accessToken})
+router.get('/logout', (req, res, next) => {
+  delete req.session[accessTokenKey]
+  delete req.session[refreshTokenKey]
+  delete req.session[userIdKey]
+  res.end()
 })
 
-router.get('/logout', (req, res, next) => {
-  res.clearCookie(accessTokenKey)
-  res.clearCookie(refreshTokenKey)
-  res.end()
+router.use('/*', (req, res, next) => {
+  if (!req.session) return res.status(400).end()
+  if (!req.session[userIdKey]) return res.status(401).end()
+
+  req.userId = req.session[userIdKey]
+  next()
+
 })
 
 module.exports = router

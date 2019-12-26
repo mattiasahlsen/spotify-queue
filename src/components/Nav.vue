@@ -1,9 +1,8 @@
 <template>
   <div class="nav">
-    <div v-if="accessToken && userData" class="nav-content">
+    <div v-if="authorized && userId" class="nav-content">
       <button class="btn btn-secondary spacing-right" @click="logout">LOG OUT</button>
-      <p class="username">{{userData.id}}</p>
-      <img v-if="userData.images && userData.images.length > 0" class="user-image" :src="userData.images[0].url">
+      <p class="username">{{userId}}</p>
     </div>
   </div>
 </template>
@@ -16,11 +15,11 @@ export default {
     }
   },
   computed: {
-    accessToken() {
-      return this.$store.state.auth.accessToken
+    authorized() {
+      return this.$store.getters.authorized
     },
-    userData() {
-      return this.$store.state.auth.userData
+    userId() {
+      return this.$store.state.auth.userId
     }
   },
   methods: {

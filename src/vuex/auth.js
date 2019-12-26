@@ -4,8 +4,8 @@ import { checkStatus, newError, showErr } from '../lib'
 
 export default {
   state: {
-    accessToken: null,
-    userData: null,
+    authorized: false,
+    userId: null,
 
     loading: false,
   },
@@ -14,55 +14,36 @@ export default {
       credentials: 'include',
       headers: { 'Content-type': 'application/json' }
     }),
-    spotifyFetchOptions: state => ({
+    spotifyFetchOptions: (state, getters, rootState, rootGetters) => ({
       headers: {
-        'Authorization': 'Bearer ' + state.accessToken
+        'Authorization': 'Bearer ' + rootGetters.queueAccessToken
       }
-    })
+    }),
+    authorized: state => state.authorized,
   },
   actions: {
-    refreshAccessToken({ dispatch }) {
-      return dispatch('fetchAccessToken', true)
-    },
-    fetchAccessToken({ state, commit, getters, dispatch }, refresh) {
-      commit('loadingToken', true)
-      return fetch(
-        config.server + (refresh ? '/refreshToken' : '/accessToken'),
-        getters.serverFetchOptions
-      ).then(checkStatus).then(async resp => {
-        const data = await resp.json()
-        if (data.accessToken) {
-          commit('accessToken', data.accessToken)
-          dispatch('fetchUserData').catch(showErr)
-        }
-        return state.accessToken
-      }).finally(() => commit('loadingToken', false))
+    authenticate({ state, commit, getters, dispatch }) {
+      return fetch(config.server + '/authenticate', getters.serverFetchOptions)
+        .then(checkStatus).then(async resp => {
+          const data = await resp.json()
+          commit('userId', data.userId)
+          commit('authorized', data.authorized)
+          return data
+        })
     },
     logout({ state, commit, getters }) {
       return fetch(config.server + '/logout', getters.serverFetchOptions)
         .then(checkStatus).then(resp => {
-          commit('accessToken', null)
+          commit('authorized', false)
         })
-    },
-
-    fetchUserData({ commit, dispatch, state, getters }) {
-      return fetch(config.spotifyServer + '/me', getters.spotifyFetchOptions)
-        .then(async resp => {
-          if (resp.status === 200) {
-            const data = await resp.json()
-            commit('userData', data)
-          } else if (resp.status === 401) {
-            return dispatch('refreshAccessToken').then(dispatch('fetchUserData'))
-          } else throw new Error('HTTP status: ' + resp.status)
-      })
     },
   },
   mutations: {
-    accessToken(state, token) {
-      state.accessToken = token
+    authorized(state, authorized) {
+      state.authorized = authorized
     },
-    userData(state, data) {
-      state.userData = data
+    userId(state, userId) {
+      state.userId = userId
     },
 
     loadingToken(state, loading) {

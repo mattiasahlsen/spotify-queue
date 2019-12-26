@@ -1,20 +1,18 @@
-import { checkStatus, } from '../lib'
+import { checkStatus, queueUrl } from '../lib'
 import config from '../config'
 
 export default {
   state: {
     currentTrack: null,
     loading: null,
-    progress: 0,
   },
   getters: {
     currentTrack: state => state.currentTrack,
-    progress: state => state.progress,
   },
   actions: {
     fetchTrackData({ state, commit, dispatch, getters }, trackId) {
-      return fetch(config.spotifyServer + '/tracks/' + trackId,
-        getters.spotifyFetchOptions).then(checkStatus).then(resp => {
+      return fetch(queueUrl('/spotify/track/' + trackId),
+        getters.serverFetchOptions).then(checkStatus).then(resp => {
           return resp.json()
       })
     },
@@ -29,30 +27,23 @@ export default {
     },
 
     fetchTrack({ state, commit, dispatch, getters}, endpoint) {
-      const url = config.server + '/queue/' + endpoint
+      const path = '/queue/' + endpoint
       commit('loadingCurrent', true)
-      return fetch(url, getters.serverFetchOptions).then(checkStatus)
+      return fetch(queueUrl(path), getters.serverFetchOptions).then(checkStatus)
         .then(async resp => {
           const data = await resp.json()
-          if (data.trackId) {
-            const track = await dispatch('fetchTrackData', data.trackId)
-            commit('currentTrack', track)
-          }
-          if (data.progress) {
-            commit('progress', data.progress)
-          }
-          return data.trackId
-      }).finally(() => commit('loadingCurrent', false))
+          if (data.trackData) {
+            commit('currentTrack', data.trackData)
+          } else commit('currentTrack', null)
+          return data
+      })
+      .finally(() => commit('loadingCurrent', false))
     },
   },
   mutations: {
     currentTrack(state, track) {
       state.currentTrack = track
     },
-    progress(state, ms) {
-      state.progress = ms
-    },
-
     loadingCurrent(state, loading) {
       state.loading = loading
     }

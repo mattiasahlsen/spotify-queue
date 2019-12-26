@@ -21,15 +21,12 @@ export default {
   data() {
     return {
       updateProgressInterval: null,
-      progress: this.$store.getters.progress,
-    }
-  },
-  watch: {
-    '$store.getters.progress': function(val) {
-      this.progress = val
     }
   },
   computed: {
+    progress() {
+      return this.$store.getters.liveProgress
+    },
     isPlaying() {
       return this.$store.getters.isPlaying
     },
@@ -42,10 +39,16 @@ export default {
       return `rgb(${red}, ${green}, 0)`
     },
   },
-  mounted() {
-    const FPS = 100
+  created() {
+    const FPS = 60
+    if (this.updateProgressInterval) clearInterval(this.updateProgressInterval)
     this.updateProgressInterval = setInterval(() => {
-      if (this.isPlaying) this.progress += 1000 / FPS
+      if (this.isPlaying && this.current) {
+        this.$store.commit(
+          'liveProgress',
+          this.$store.getters.liveProgress + 1000 / FPS
+        )
+      }
     }, 1000 / FPS)
   },
   destroyed() {
@@ -56,14 +59,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.item {
-  margin: 0.5em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  overflow: auto;
-  position: relative;
-}
 .item-left {
   margin-right: 1em;
 }

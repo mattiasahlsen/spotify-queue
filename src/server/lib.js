@@ -1,4 +1,15 @@
-const queues = {}
+const queryString = require('querystring')
+const fetch = require('node-fetch')
+
+const config = require('./config')
+
+const {
+  userIdKey,
+  accessTokenKey,
+  queueIdKey,
+
+} = config
+
 
 const generateRandomString = length => {
   let text = ''
@@ -10,54 +21,64 @@ const generateRandomString = length => {
   return text
 }
 
-const newQueue = ownerId => {
-  const queueId = generateRandomString(32)
 
-  const queue = {
-    owner: ownerId,
-    users: {},
-    played: [],
-    index: 0,
-    progress: 0,
+const fetchOptions = queue => ({
+  headers: {
+    'Authorization': 'Bearer ' + queue.accessToken
   }
-  queues[queueId] = queue
-  setTimeout(() => {
-    delete queues[queueId]
-  }, 1000 * 3600 * 24) // delete after 24 hours
+})
 
-  return queueId
+const error = msg => ({ error: msg })
+const fetchError = resp => {
+  const err = new Error(resp.statusText)
+  err.resp = resp
+  err.status = resp.status
+  return err
 }
 
-const getPrevious = queue => {
-  queue.progress = 0
-  if (queue.index === 0) return queue.played[0]
-  queue.index--
-  return queue.played[queue.index]
+const checkStatus = async resp => {
+  if (resp.status >= 400 && resp.status < 600) {
+    throw fetchError(resp)
+  }
+  else return resp
 }
 
-const getCurrent = queue => {
-  return queue.played[queue.index]
+const refreshToken = queue => {
+  const refreshToken = queue.refreshToken
+  const formData = new URLSearchParams()
+  formData.append('grant_type', 'refresh_token')
+  formData.append('refresh_token', refreshToken)
+
+  return fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' +
+        new Buffer(config.clientId + ':' + config.clientSecret).toString('base64'),
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: formData,
+  }).then(checkStatus).then(async resp => {
+    const data = await resp.json()
+    queue.accessToken = data.access_token
+    return data.access_token
+  })
 }
 
-const getNext = queue => {
-  queue.progress = 0
-  if (queue.index < queue.played.length) queue.index++
-  if (queue.index < queue.played.length) return queue.played[queue.index]
-
-  const userQueues = Object.values(queue.users)
-  const userQueue = userQueues[Math.floor(Math.random() * userQueues.length)]
-  const nextSong = userQueue.shift()
-
-  if (nextSong) queue.played.push(nextSong)
-  return nextSong
+const myFetch = (sendRequest, queue) => {
+  return sendRequest().then(resp => {
+    if (resp.status === 401) return refreshToken(queue).then(sendRequest)
+    else return resp
+  })
 }
 
 module.exports = {
   generateRandomString,
-  queues,
-  newQueue,
   
-  getPrevious,
-  getCurrent,
-  getNext,
+  refreshToken,
+  error,
+
+  myFetch,
+  checkStatus,
+  fetchOptions,
+  fetchError,
 }

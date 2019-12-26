@@ -1,63 +1,47 @@
-import { checkStatus, } from '../lib'
+import { checkStatus, showErr, queueUrl } from '../lib'
 import config from '../config'
 
 export default {
   state: {
-    currentlyPlaying: null,
+    isPlaying: false,
+    progress: 0,
+    liveProgress: 0,
   },
   getters: {
-    isPlaying: (state, getters) => getters.onQueue &&
-      state.currentlyPlaying.is_playing,
-    onQueue: (state, getters) => getters.currentTrack && state.currentlyPlaying &&
-        (getters.currentTrack.id === state.currentlyPlaying.item.id),
+    isPlaying: state => state.isPlaying,
+    progress: state => state.progress,
+    liveProgress: state => state.liveProgress,
   },
   actions: {
-    fetchCurrentlyPlaying({ state, commit, dispatch, getters}) {
-      return fetch(config.spotifyServer + '/me/player/currently-playing',
-        getters.spotifyFetchOptions
-      ).then(checkStatus).then(async resp => {
-        if (resp.status === 204) return
-
-        const data = await resp.json()
-        commit('currentlyPlaying', data)
-        if (getters.onQueue) commit('progress', data.progress_ms)
-        return data
-      })
-    },
     async playNext({ state, commit, dispatch, getters}) {
-      await dispatch('fetchNext')
-      return dispatch('play', { restart: true })
+      return dispatch('control', 'next')
     },
     async playPrevious({ state, commit, dispatch, getters}) {
-      if (getters.progress < 2000) await dispatch('fetchPrevious')
-      return dispatch('play', { restart: true })
+      return dispatch('control', 'previous')
     },
-    async play({ state, commit, dispatch, getters}, options) {
-      if (!getters.currentTrack) return
-
-      const restart = options && options.restart
-      const pause = options && options.pause
-
-      if (restart) commit('progress', 0)
-      else await dispatch('fetchCurrentlyPlaying')
-
-      const url = config.spotifyServer +
-        '/me/player/' + (pause ? 'pause' : 'play')
-      const body = (getters.onQueue && !restart) ? {} : {
-        uris: ['spotify:track:' + getters.currentTrack.id],
-        position_ms: getters.progress,
-      }
-
-      return fetch(url, {
-        ...getters.spotifyFetchOptions,
-        method: 'PUT',
-        body: JSON.stringify(body),
-      }).then(resp => dispatch('fetchCurrentlyPlaying'))
+    async pause({ state, commit, dispatch, getters}) {
+      return dispatch('control', 'pause')
+    },
+    async resume({ state, commit, dispatch, getters}) {
+      return dispatch('control', 'resume')
+    },
+    async control({ state, commit, dispatch, getters}, endpoint) {
+      const path = '/spotify/' + endpoint
+      return fetch(queueUrl(path), {
+        ...getters.serverFetchOptions,
+      }).then(checkStatus)
     },
   },
   mutations: {
-    currentlyPlaying(state, data) {
-      state.currentlyPlaying = data
+    isPlaying(state, isPlaying) {
+      state.isPlaying = isPlaying
+    },
+    progress(state, ms) {
+      state.progress = ms
+      state.liveProgress = ms
+    },
+    liveProgress(state, ms) {
+      state.liveProgress = ms
     },
   }
 }

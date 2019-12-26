@@ -1,52 +1,75 @@
-import { checkStatus, showErr } from '../lib'
+import { checkStatus, showErr, queueUrl, pass } from '../lib'
 import config from '../config'
+import { router } from '../main'
+    
 
 export default {
   state: {
-    queueId: null,
     loading: false,
+    owner: false,
+    notFound: false,
+
+    addedTracks: [],
+  },
+  getters: {
+    owner: state => state.owner,
   },
   actions: {
-    fetchQueueId({ state, commit, dispatch, getters }) {
+    fetchQueue({ state, commit, dispatch, getters }) {
       commit('loadingQueue', true)
-      return fetch(config.server + '/queue/id', getters.serverFetchOptions)
-        .then(async resp => {
-          if (resp.status === 404) return
-          await checkStatus(resp) // should do nothing if no error
-
+      return fetch(queueUrl('/queue/data'), getters.serverFetchOptions)
+        .then(resp => {
+          if (resp.status === 404) commit('notFound', true)
+          else if (resp.status === 200) commit('notFound', false)
+          return resp
+        })
+        .then(checkStatus).then(async resp => {
           const data = await resp.json()
-          if (data.queueId) {
-            commit('queueId', data.queueId)
-            dispatch('fetchCurrent').catch(showErr)
-          }
-
-          return data.queueId
+          commit('owner', data.owner)
+          return (await dispatch('fetchCurrent'))
       }).finally(() => commit('loadingQueue', false))
     },
     newQueue({ state, commit, dispatch, getters }) {
       return fetch(config.server + '/newQueue', getters.serverFetchOptions)
         .then(checkStatus).then(async resp => {
           const data = await resp.json()
-          commit('queueId', data.queueId)
+          router.push({ name: 'home', params: { queueId: data.queueId }})
+            .catch(err => {
+              if (err.name === 'NavigationDuplicated') {
+                dispatch('fetchQueue').catch(showErr)
+              } else throw err
+            })
           return data.queueId
         })
     },
     deleteQueue({ state, commit, dispatch, getters }) {
-      return fetch(config.server + '/queue/delete', getters.serverFetchOptions)
+      return fetch(queueUrl('/queue/delete'), getters.serverFetchOptions)
         .then(checkStatus).then(() => {
-          commit('deleteQueue')
+          router.push('/')
         })
-    }
+    },
+    addTrack({ state, commit, dispatch, getters }, track) {
+      return fetch(queueUrl('/queue/track'), {
+        ...getters.serverFetchOptions,
+        method: 'POST',
+        body: JSON.stringify({ trackId: track.id })
+      }).then(checkStatus).then(resp => {
+        commit('addTrack', track)
+      })
+    },
   },
   mutations: {
-    queueId(state, id) {
-      state.queueId = id
-    },
-    deleteQueue(state) {
-      state.queueId = null
-    },
     loadingQueue(state, loading) {
       state.loading = loading
-    }
+    },
+    addTrack(state, track) {
+      state.addedTracks = state.addedTracks.concat([track])
+    },
+    owner(state, isOwner) {
+      state.owner = isOwner
+    },
+    notFound(state, notFound) {
+      state.notFound = notFound
+    },
   }
 }

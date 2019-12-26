@@ -1,4 +1,7 @@
 // General
+* {
+  text-decoration: none;
+}
 select {
   border: 1px solid $background;
   border-radius: 0;
@@ -20,18 +23,42 @@ body, html {
 button {
   background-color: $light-2;
   color: $dark-2;
-  &:hover {
+  &:hover:enabled {
     background-color: $grey-1;
   }
 }
 
-h1, h2 {
+h1, h2, h3, h4, h5, h6, p {
   margin: 0;
   padding: 0;
 }
 
 // Classes
+.item {
+  margin: 0.5em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: auto;
+  position: relative;
+}
+.item-container {
+  background-color: $secondary;
+  margin: 0.5em 0;
+  border-radius: 0.5em;
+  position: relative;
+  overflow: hidden;
+}
 
+.clickable-icon {
+  cursor: pointer;
+  &:hover {
+    color: $grey-2;
+  }
+}
+.right {
+  float: right;
+}
 .container {
   margin-left: auto;
   margin-right: auto;
@@ -48,7 +75,10 @@ h1, h2 {
 .clickable {
   cursor: pointer;
 }
-.non-clickable {
+.disabled {
+  opacity: 0.5;
+}
+button:disabled {
   opacity: 0.5;
 }
 .spacing {
@@ -61,6 +91,10 @@ h1, h2 {
   margin-right: 0.25em;
   margin-left: 0.25em;
 }
+.spacing-y {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
 
 .btn {
   border-radius: 1em;
@@ -70,13 +104,29 @@ h1, h2 {
   text-decoration: none;
   border: none;
   transition: background-color 0.25s ease, color 0.25s ease;
+}
+.btn:hover:enabled {
   cursor: pointer;
 }
+
+.btn-standard {
+  border-radius: 0px;
+  font-size: 1.1em;
+  width: 8em;
+}
+.btn-error {
+  color: $light-1;
+  background-color: $error;
+  &:hover:enabled {
+    background-color: $error-2;
+  }
+}
+
 .btn-primary {
   background-color: $primary;
   color: $light-2;
 }
-.btn-primary:hover {
+.btn-primary:hover:enabled {
   background-color: $primary-2;
 }
 .btn-secondary {
@@ -84,12 +134,27 @@ h1, h2 {
   color: $light-1;
   border: 2px solid $light-1;
 }
-.btn-secondary:hover {
+.btn-secondary:hover:enabled {
   color: $background;
   background-color: $light-1;
 }
 .btn-big {
   font-size: 1.5em;
+}
+
+.search-container {
+  display: flex;
+  align-items: stretch;
+  border-radius: 1px;
+}
+.search-bar {
+  border: none;
+  font-size: 2em;
+  border: 1px solid $dark-1;
+  padding: 0.1em;
+  background: $light-1;
+  color: $dark-1;
+  min-width: 0;
 }
 
 // Media queries

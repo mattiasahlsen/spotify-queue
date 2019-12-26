@@ -2,29 +2,27 @@
   <div class="controls">
     <font-awesome-icon
       icon="fast-backward"
-      :class="[ track ? 'clickable-icon' : 'non-clickable' ]"
+      class="clickable-icon"
       size="2x"
       @click="previous"
     />
     <font-awesome-icon
       v-if="isPlaying"
-      class="play"
-      :class="[ track ? 'clickable-icon' : 'non-clickable' ]"
+      class="play clickable-icon"
       icon="pause-circle"
       size="3x"
       @click="pause"
     />
     <font-awesome-icon
       v-else
-      class="play"
-      :class="[ track ? 'clickable-icon' : 'non-clickable' ]"
+      class="play clickable-icon"
       icon="play-circle"
       size="3x"
       @click="play"
     />
     <font-awesome-icon
       icon="fast-forward"
-      :class="[ track ? 'clickable-icon' : 'non-clickable' ]"
+      class="clickable-icon"
       size="2x"
       @click="next"
     />
@@ -42,16 +40,13 @@ export default {
     onQueue() {
       return this.$store.getters.onQueue
     },
-    track() {
-      return this.$store.state.track.currentTrack
-    }
   },
   methods: {
     play() {
-      this.$store.dispatch('play').catch(showErr)
+      this.$store.dispatch('resume').catch(showErr)
     },
     pause() {
-      this.$store.dispatch('play', { pause: true }).catch(showErr)
+      this.$store.dispatch('pause').catch(showErr)
     },
     next() {
       this.$store.dispatch('playNext').catch(showErr)
@@ -71,12 +66,6 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-.clickable-icon {
-  cursor: pointer;
-  &:hover {
-    color: $grey-2;
-  }
 }
 .play {
   margin: 0 0.2em;

@@ -6,6 +6,7 @@ import auth from './vuex/auth'
 import queue from './vuex/queue'
 import track from './vuex/track'
 import player from './vuex/player'
+import search from './vuex/search'
 
 
 const store = new Vuex.Store({
@@ -20,6 +21,7 @@ const store = new Vuex.Store({
     queue,
     track,
     player,
+    search,
   },
   mutations: {
     error(state, error) {
@@ -35,7 +37,7 @@ const store = new Vuex.Store({
 const promises = {}
 const dispatch = store.dispatch
 store.dispatch = (...args) => {
-  if (args.length > 1) return dispatch.apply(store, args)
+  // if (args.length > 1) return dispatch.apply(store, args)
 
   const action = args[0]
   if (promises[action]) return promises[action]

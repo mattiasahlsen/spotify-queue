@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <modal name="error" classes="error">
+    <modal
+      name="error"
+      classes="error"
+      :adaptive="true"
+    >
       <div>
         <h1>Error</h1>
         <p>{{$store.getters.error}}</p>
@@ -13,64 +17,70 @@
     <Nav></Nav>
 
     <div class="container">
-      <clip-loader
-        v-if="loading"
-        color="#1cca59"
-        :loading="true"
-      ></clip-loader>
+      <div class="content-container">
+        <div class="content">
 
-      <div v-else-if="!queueId">
-        <button class="btn btn-primary btn-big spacing-x" @click="newQueue">
-          New Queue
-        </button>
-        <button class="btn btn-primary btn-big spacing-x">
-          Connect to queue
-        </button>
-      </div>
+          <form @submit.prevent="connect" class="search-container spacing-y">
+            <input
+              class="search-bar"
+              placeholder="Enter queue link..."
+              v-model="queueLink"
+            >
+            <button
+              class="btn btn-standard spacing-x"
+              type="submit"
+            >
+              Connect
+            </button>
+          </form>
 
-      <div class="content" v-else-if="queueId">
-        <div v-if="accessToken">
-          <Controls></Controls>
+          <h2 v-if="badQueueLink" class="error-text">
+            Invalid queue link
+          </h2>
 
-          <div class="queue-buttons">
-            <div>
-              <button
-                class="btn btn-standard"
-                @click="deleteQueue"
-              >
-                Add song
-              </button>
-            </div>
-            <div>
-              <button
-                class="btn btn-standard btn-error"
-                @click="deleteQueue"
-              >
-                Delete queue
-              </button>
-            </div>
+          <div class="new-queue">
+            <button
+              v-if="authorized"
+              class="btn btn-primary btn-big spacing-x"
+              @click="newQueue"
+            >
+              New Queue
+            </button>
+            <a
+              v-else
+              class="btn btn-primary btn-big spacing-x"
+              :href="loginUrl"
+            >
+              Authenticate
+            </a>
           </div>
-        </div>
 
-        <div class="spacing">
-          <div class="items">
-            <h2>Currently playing</h2>
-            <div class="item-container">
-              <clip-loader
-                v-if="loadingCurrent"
-                class="spacing"
-                color="#1cca59"
-                :loading="true"
-              ></clip-loader>
+          <clip-loader
+            v-if="loading"
+            color="#1cca59"
+            :loading="true"
+          ></clip-loader>
 
-              <Track
-                v-else-if="currentTrack"
-                :track="currentTrack"
-                :current="currentlyPlayingData"
-              />
-              <p class="spacing" v-else>Queue is empty</p>
+          <h2 v-else-if="notFound" class="error-text">
+            Queue not found
+          </h2>
+
+          <div v-else-if="queueId">
+            <h2 class="spacing-y">Queue link</h2>
+            <div class="queue-id">
+              <p>{{href}}</p>
+              <CopyButton :value="href" text="Copy sharable link"/>
             </div>
-            <p v-if="!onQueue">Queue is not playing</p>
+
+            <Manage v-if="owner" class="manage"/>
+
+            <div class="spacing">
+              <div class="items">
+                <Current class="spacing-y"/>
+                <Search class="spacing-y"/>
+                <Tracks class="spacing-y"/>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -79,33 +89,46 @@
 </template>
 
 <script>
+import querystring from 'querystring'
+import io from 'socket.io-client'
+
 import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
 import Nav from './components/Nav'
-import Track from './components/Track'
-import Controls from './components/Controls'
+import Manage from './components/Manage'
+import Current from './components/Current'
+import Tracks from './components/Tracks'
+import Search from './components/Search'
+import CopyButton from './components/CopyButton'
+
 import store from './store'
 
 import config from './config'
-import { showErr } from './lib'
-
+import { showErr, queueUrl } from './lib'
 
 
 export default {
   name: 'app',
   components: {
     ClipLoader,
-    Track,
+    Tracks,
     Nav,
-    Controls,
+    Manage,
+    Current,
+    Search,
+    CopyButton,
   },
   data() {
     return {
-      server: config.server,
       error: null,
 
       queue: [],
 
-      currentlyPlayingInterval: null,
+      queueLink: '',
+      badQueueLink: false,
+
+      server: config.server,
+      href: window.location.href,
+      socket: null,
     }
   },
   watch: {
@@ -113,86 +136,105 @@ export default {
       if (err) this.displayError()
     },
     '$store.getters.progress': function(val) {
-      fetch(config.server + '/queue/progress', {
+      /*fetch(queueUrl('/queue/progress'), {
         ...this.$store.getters.serverFetchOptions,
         method: 'POST',
         body: JSON.stringify({ progress: val })
-      }).catch(err => console.log(err))
+      }).catch(err => console.log(err))*/
+    },
+    queueId: function(val) {
+      this.href = window.location.href
+      this.fetchQueue()
 
+      this.socket.emit('queue', val)
     }
   },
   computed: {
+    loginUrl() {
+      return this.server + '/login?' + querystring.stringify({
+        redirect: window.location.origin + window.location.pathname
+      })
+    },
+    authorized() {
+      return this.$store.getters.authorized
+    },
+    loading() {
+      return this.$store.state.queue.loading
+    },
+    queueId() {
+      return this.$route.params.queueId
+    },
+    notFound() {
+      return this.$store.state.queue.notFound
+    },
+    owner() {
+      return this.$store.getters.owner
+    },
     onQueue() {
       return this.$store.getters.onQueue
-    },
-    accessToken() {
-      return this.$store.state.auth.accessToken
-    },
-
-    loading() {
-      return this.$store.state.auth.loading || this.$store.state.queue.loading
-    },
-    loadingCurrent() {
-      return this.$store.state.track.loading
-    },
-
-    queueId() {
-      return this.$store.state.queue.queueId
-    },
-    currentTrack() {
-      return this.$store.state.track.currentTrack
-    },
-    currentlyPlayingData() {
-      return this.$store.state.player.currentlyPlaying
     }
   },
   created() {
-    this.currentlyPlaying()
-    this.fetchAccessToken().then(token => {
-      // must wait for the first request to finish to create session
-      this.fetchQueueId().catch(showErr)
+    if (this.$route.query.error) showErr(this.$route.query.error)
+
+    this.authenticate().then(() => {
+      this.fetchQueue()
+
+      this.socket = io(this.server)
+      if (this.queueId) this.socket.emit('queue', this.queueId)
+
+      this.socket.on('current', track => {
+        this.$store.commit('progress', 0)
+        this.$store.commit('currentTrack', track)
+      })
+      this.socket.on('status', data => {
+        this.$store.commit('progress', data.progress)
+        this.$store.commit('isPlaying', data.isPlaying)
+      })
     }).catch(showErr)
   },
   methods: {
     newQueue() {
-      if (!this.accessToken) this.$router.push(this.server + '/login')
-      else this.$store.dispatch('newQueue').catch(showErr)
+      return this.$store.dispatch('newQueue').catch(showErr)
     },
-    deleteQueue() {
-      this.$store.dispatch('deleteQueue').catch(showErr)
+    fetchQueue() {
+      if (this.queueId) {
+        this.$store.dispatch('fetchQueue')
+          .catch(err => {
+            if (err.status !== 404) throw err
+          }).catch(showErr)
+      }
     },
-    play() {
-      this.$store.dispatch('play').catch(showErr)
-    },
-    currentlyPlaying() {
-      const LONG = 5000 // 5s
-      const SHORT = 1000 // 1s
-      const refresh = this.currentlyPlaying.bind(this)
+    connect() {
+      const link = this.queueLink.includes('http') ?
+        this.queueLink : 'http://' + this.queueLink
 
-      if (!(this.accessToken && this.queueId)) {
-        return setTimeout(refresh, LONG)
+      let url
+      try {
+        url = new URL(link)
+      } catch (err) {
+        this.badQueueLink = true
+        return
       }
 
-      return this.$store.dispatch('fetchCurrentlyPlaying').then(data => {
-        if (!data) return setTimeout(refresh, LONG)
-
-        const msLeft = data.item.duration_ms - data.progress_ms
-        if (msLeft > 2 * LONG) {
-          setTimeout(refresh, LONG)
-        } else setTimeout(refresh, SHORT)
-        if (msLeft < 1000 && this.$store.getters.onQueue) {
-          this.$store.dispatch('playNext')
-        } 
-      }).catch(showErr)
+      if (
+        url.origin !== window.location.origin ||
+        url.pathname === '/'
+      ) {
+        this.badQueueLink = true
+        return
+      }
+      this.badQueueLink = false
+      if (url.pathname !== window.location.pathname) {
+        this.$router.push(url.pathname)
+      }
     },
-    fetchQueueId() {
-      return this.$store.dispatch('fetchQueueId')
+    play() {
+      this.$store.dispatch('play')
+        .catch(showErr)
     },
-    playNext() {
-      this.$store.dispatch('playNext')
-    },
-    fetchAccessToken() {
-      return this.$store.dispatch('fetchAccessToken')
+    authenticate() {
+      return this.$store.dispatch('authenticate')
     },
 
     displayError(err) {
@@ -234,31 +276,17 @@ export default {
   flex-direction: column;
   padding: 1em;
 }
-.btn-standard {
-  border-radius: 1px;
-  font-size: 1.1em;
-  width: 8em;
-  margin: 0.5em;
-}
-.btn-error {
-  color: $light-1;
-  background-color: $error;
-  &:hover {
-    background-color: $error-2;
-  }
-}
 .new-queue {
   border-radius: 1px;
   font-size: 1.2em;
 }
 
-.queue-buttons {
-  display: flex;
-  justify-content: space-between;
-}
 
-.content {
+.content-container {
   max-width: 100%;
+}
+.content {
+  margin: 0 0.5em;
 }
 
 .items {
@@ -269,13 +297,6 @@ export default {
     margin-bottom: 0.2em;
   }
 }
-.item-container {
-  background-color: $secondary;
-  margin: 0.5em 0;
-  border-radius: 0.5em;
-  position: relative;
-  overflow: hidden;
-}
 
 .selects {
   display: inline-flex;
@@ -283,5 +304,58 @@ export default {
 }
 .selects select {
   flex: 1 0 auto;
+}
+
+.clear-tracks {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.queue-id {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: $light-2;
+  button {
+    background-color: $dark-1;
+    color: $light-2;
+    &:hover:enabled {
+      background-color: $dark-2;
+    }
+  }
+  p {
+    color: $dark-1;
+    font-size: 1.2em;
+    margin: 0.1em;
+    overflow: hidden;
+  }
+}
+
+.copied-tooltip {
+  background-color: $light-2;
+  color: $dark-1;
+  font-family: 'Montserrat', sans-serif;
+  margin-bottom: 0.4em;
+  padding: 0.2em;
+  border-radius: 1px;
+}
+
+.manage {
+  margin: 1em 0;
+}
+
+.new-queue {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.error-text {
+  margin: 0.5em 0 1em;
+  text-align: center;
+  color: $error;
+}
+
+.search-bar {
+  flex: 1 0 0;
 }
 </style>

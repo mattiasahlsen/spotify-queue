@@ -7,18 +7,19 @@ const cors = require('cors')
 
 const config = require('./config')
 const authController = require('./controllers/auth')
+const queueController = require('./controllers/queue')
 const spotifyController = require('./controllers/spotify')
 
 const app = express()
 
 const DIST = path.join(__dirname, '../../dist')
 
-
+const DEV = process.env.NODE_ENV === 'development'
 
 // uncomment after placing your favicon in /public
 // app.use(favicon(__dirname + '/public/favicon.ico'))
 
-if (process.env.NODE_ENV === 'development' || process.env.DEBUG) app.use(morgan('dev'))
+if (DEV) app.use(morgan('dev'))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -28,10 +29,10 @@ app.use(cookieParser())
 app.use(require('express-session')({
   secret: config.secret,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {
     maxAge: config.sessionMaxAge,
-    secure: false,
+    secure: !DEV,
   },
 }))
 
@@ -39,15 +40,10 @@ app.use(require('express-session')({
 // routes
 if (process.env.NODE_ENV === 'production') app.use(express.static(DIST))
 
-app.use('/*', (req, res, next) => {
-  if (!req.session || !req.session.id) return res.status(400).json({
-    error: 'No session ID.'
-  })
-  console.log(req.session.id)
-  next()
-})
 
+// ORDER MATTERS
 app.use('/', authController)
+app.use('/', queueController)
 app.use('/', spotifyController)
 
 app.get('/ping', function(req, res) {

@@ -4,6 +4,9 @@ const serverConfig = require('./src/server/config')
 
 module.exports = {
   publicPath: serverConfig.origin,
+  devServer: {
+    historyApiFallback: true,
+  },
 
   chainWebpack: config => {
     const types = ['vue-modules', 'vue', 'normal-modules', 'normal']

@@ -32,8 +32,12 @@ const config = {
   stateKey: 'spotify_auth_state',
   accessTokenKey: 'spotify_access_token',
   refreshTokenKey: 'spotify_refresh_token',
+  userIdKey: 'user_id',
+  queueIdKey: 'queue_id',
+
+  spotifyServer: 'https://api.spotify.com/v1',
 }
 config.server = `${config.protocol}://${config.host}:${config.port}`
-config.origin = development ? 'http://localhost:8080' : process.env.VUE_APP_ORIGIN
+config.origin = process.env.VUE_APP_ORIGIN || 'http://localhost:8080'
 
 module.exports = config
