@@ -1,28 +1,28 @@
 <template>
-  <div>
-    <Controls></Controls>
-
-    <div class="queue-buttons">
-      <div>
-        <button
-          class="btn btn-standard btn-error spacing"
-          @click="deleteQueue"
-        >
-          Delete queue
-        </button>
-      </div>
+  <div class="manage">
+    <Controls/>
+    <div class="options">
+      <Devices/>
+      <button
+        class="btn btn-standard btn-error spacing"
+        @click="deleteQueue"
+      >
+        Delete queue
+      </button>
     </div>
   </div>
 </template>
 
 <script>
 import Controls from './Controls'
+import Devices from './Devices'
 
 import { showErr } from '../lib'
 
 export default {
   components: {
     Controls,
+    Devices,
   },
   computed: {
   },
@@ -35,8 +35,12 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.queue-buttons {
+.manage {
+  margin: 1em 0;
+}
+.options {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>

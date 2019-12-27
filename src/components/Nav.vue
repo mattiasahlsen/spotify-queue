@@ -1,5 +1,6 @@
 <template>
   <div class="nav">
+    <h1 @click="goHome" class="clickable-icon">Home</h1>
     <div v-if="authorized && userId" class="nav-content">
       <button class="btn btn-secondary spacing-right" @click="logout">LOG OUT</button>
       <p class="username">{{userId}}</p>
@@ -25,6 +26,9 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch('logout')
+    },
+    goHome() {
+      this.$router.push({ name: 'home' })
     }
   }
 }
@@ -35,7 +39,7 @@ export default {
   display: flex;
   padding: 1em 2em;
   height: 3em;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
 }
 .nav-content {

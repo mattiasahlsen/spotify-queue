@@ -26,14 +26,15 @@ export default {
         .then(checkStatus).then(async resp => {
           const data = await resp.json()
           commit('owner', data.owner)
-          return (await dispatch('fetchCurrent'))
+          dispatch('fetchCurrent').catch(showErr)
+          return data
       }).finally(() => commit('loadingQueue', false))
     },
     newQueue({ state, commit, dispatch, getters }) {
       return fetch(config.server + '/newQueue', getters.serverFetchOptions)
         .then(checkStatus).then(async resp => {
           const data = await resp.json()
-          router.push({ name: 'home', params: { queueId: data.queueId }})
+          router.push({ name: 'queue', params: { queueId: data.queueId }})
             .catch(err => {
               if (err.name === 'NavigationDuplicated') {
                 dispatch('fetchQueue').catch(showErr)

@@ -39,6 +39,7 @@ const newQueue = (ownerId, accessToken, refreshToken) => {
     accessToken,
     refreshToken,
     owner: ownerId,
+    deviceId: null,
 
     users: {},
     played: [],
@@ -63,13 +64,11 @@ const getPrevious = queue => {
   queue.index--
   const track = queue.played[queue.index]
 
-  Object.values(queue.sockets).forEach(socket => socket.emit('current', track))
   return track
 }
 
 const getCurrent = queue => {
   const track = queue.played[queue.index]
-  Object.values(queue.sockets).forEach(socket => socket.emit('current', track))
   return track
 }
 
@@ -87,7 +86,6 @@ const getNext = async queue => {
   userQueue.shift() // success
 
   queue.played.push(track)
-  Object.values(queue.sockets).forEach(socket => socket.emit('current', track))
   return track
 }
 

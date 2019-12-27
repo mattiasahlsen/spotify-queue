@@ -54,13 +54,18 @@ router.get('/spotify/search', (req, res) => {
     })
 })
 
+router.get('/spotify/*', (req, res, next) => {
+  if (!req.owner) return res.status(401).end()
+  next()
+})
+
 router.get('/spotify/resume', (req, res) => {
   const resumeQueue = () => resume(req.queue)
   return myFetch(resumeQueue, req.queue)
-    .then(checkStatus)
     .then(resp => res.end())
     .catch(err => {
       console.log(err)
+      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
       return res.status(500).end()
     })
 })
@@ -68,10 +73,10 @@ router.get('/spotify/resume', (req, res) => {
 router.get('/spotify/pause', (req, res) => {
   const pauseQueue = () => pause(req.queue)
   return myFetch(pauseQueue, req.queue)
-    .then(checkStatus)
     .then(resp => res.end())
     .catch(err => {
       console.log(err)
+      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
       return res.status(500).end()
     })
 })
@@ -79,10 +84,10 @@ router.get('/spotify/pause', (req, res) => {
 router.get('/spotify/next', (req, res) => {
   const nextTrack = () => playNext(req.queue)
   return myFetch(nextTrack, req.queue)
-    .then(checkStatus)
     .then(resp => res.end())
     .catch(err => {
       console.log(err)
+      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
       return res.status(500).end()
     })
 })
@@ -90,12 +95,34 @@ router.get('/spotify/next', (req, res) => {
 router.get('/spotify/previous', (req, res) => {
   const previousTrack = () => playPrevious(req.queue)
   return myFetch(previousTrack, req.queue)
-    .then(checkStatus)
     .then(resp => res.end())
+    .catch(err => {
+      console.log(err)
+      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
+      return res.status(500).end()
+    })
+})
+
+router.get('/spotify/devices', (req, res) => {
+  const url = config.spotifyServer + '/me/player/devices'
+  const devices = () => fetch(url, fetchOptions(req.queue))
+  return myFetch(devices, req.queue)
+    .then(async resp => {
+      const data = await resp.json()
+      res.json({ devices: data.devices, deviceId: req.queue.deviceId })
+    })
     .catch(err => {
       console.log(err)
       return res.status(500).end()
     })
+})
+
+router.post('/spotify/device', (req, res) => {
+  const id = req.body.id
+  if (typeof id !== 'string') return res.status(400).end()
+  
+  req.queue.deviceId = id
+  return res.end()
 })
 
 module.exports = router

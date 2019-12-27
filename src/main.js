@@ -6,9 +6,12 @@ import VModal from 'vue-js-modal'
 import VueRouter from 'vue-router'
 
 
+import ClipLoader from 'vue-spinner/src/ClipLoader.vue'
 import VueClipboard from 'vue-clipboard2'
 import VTooltip from 'v-tooltip'
+import Multiselect from 'vue-multiselect'
  
+import 'vue-multiselect/dist/vue-multiselect.min.css'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {
@@ -20,7 +23,12 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
  
+
+// register globally
+Vue.component('clip-loader', ClipLoader)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
+Vue.component('multiselect', Multiselect)
+
 Vue.use(VModal, { dialog: true })
 Vue.use(VueClipboard)
 Vue.use(VTooltip)
@@ -38,8 +46,12 @@ export const router = new VueRouter({
   mode: 'history',
   routes: [
     {
-      path: '/:queueId',
+      path: '/',
       name: 'home'
+    },
+    {
+      path: '/:queueId',
+      name: 'queue'
     }
   ]
 })

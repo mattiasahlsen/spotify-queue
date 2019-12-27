@@ -4,17 +4,16 @@ import { router } from './main'
 
 export const checkStatus = async resp => {
   if (resp.status >= 400 && resp.status < 600) {
-    const msg = resp.status + ' ' + resp.statusText
+    let msg = 'An error has occured.'
+
     try {
       const body = await resp.json()
-      const err = body.error ? new Error(body.error.message) : new Error(msg)
-      err.status = resp.status
-      throw err
-    } catch (error) {
-      const err = Error(msg)
-      err.status = resp.status
-      throw err
-    }
+      if (typeof body.error === 'string') msg = body.error
+    } catch (err) {}
+
+    const err = new Error(msg)
+    err.status = resp.status
+    throw err
   } else {
     return resp
   }
@@ -29,3 +28,8 @@ export const queueUrl = path => {
   return url
 }
 export const queueId = () => router.currentRoute.params.queueId
+
+export const serverFetchOptions = {
+  credentials: 'include',
+  headers: { 'Content-type': 'application/json' }
+}

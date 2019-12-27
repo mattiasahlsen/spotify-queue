@@ -66,7 +66,7 @@ const refreshToken = queue => {
 
 const myFetch = (sendRequest, queue) => {
   return sendRequest().then(resp => {
-    if (resp.status === 401) return refreshToken(queue).then(sendRequest)
+    if (resp && resp.status === 401) return refreshToken(queue).then(sendRequest)
     else return resp
   })
 }

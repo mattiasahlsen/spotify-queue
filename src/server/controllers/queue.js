@@ -70,6 +70,7 @@ router.get('/queue/current', async (req, res) => {
     const trackData = getCurrent(queue) || await getNext(queue)
     if (trackData) return res.json({
       trackData,
+      progress: queue.progress,
     })
   } catch (err) {
     console.log(err)

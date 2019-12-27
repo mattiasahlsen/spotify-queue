@@ -155,6 +155,13 @@ button:disabled {
   background: $light-1;
   color: $dark-1;
   min-width: 0;
+  flex: 1 0 0;
+}
+
+.error-text {
+  margin: 0.5em 0 1em;
+  text-align: center;
+  color: $error;
 }
 
 // Media queries

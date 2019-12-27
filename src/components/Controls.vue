@@ -3,27 +3,27 @@
     <font-awesome-icon
       icon="fast-backward"
       class="clickable-icon"
-      size="2x"
+      size="3x"
       @click="previous"
     />
     <font-awesome-icon
       v-if="isPlaying"
       class="play clickable-icon"
       icon="pause-circle"
-      size="3x"
+      size="4x"
       @click="pause"
     />
     <font-awesome-icon
       v-else
       class="play clickable-icon"
       icon="play-circle"
-      size="3x"
+      size="4x"
       @click="play"
     />
     <font-awesome-icon
       icon="fast-forward"
       class="clickable-icon"
-      size="2x"
+      size="3x"
       @click="next"
     />
   </div>

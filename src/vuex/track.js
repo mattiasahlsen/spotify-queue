@@ -10,30 +10,15 @@ export default {
     currentTrack: state => state.currentTrack,
   },
   actions: {
-    fetchTrackData({ state, commit, dispatch, getters }, trackId) {
-      return fetch(queueUrl('/spotify/track/' + trackId),
-        getters.serverFetchOptions).then(checkStatus).then(resp => {
-          return resp.json()
-      })
-    },
     fetchCurrent({ state, commit, dispatch, getters}) {
-      return dispatch('fetchTrack', 'current')
-    },
-    fetchNext({ state, commit, dispatch, getters}) {
-      return dispatch('fetchTrack', 'next')
-    },
-    fetchPrevious({ state, commit, dispatch, getters}) {
-      return dispatch('fetchTrack', 'previous')
-    },
-
-    fetchTrack({ state, commit, dispatch, getters}, endpoint) {
-      const path = '/queue/' + endpoint
+      const path = '/queue/current'
       commit('loadingCurrent', true)
       return fetch(queueUrl(path), getters.serverFetchOptions).then(checkStatus)
         .then(async resp => {
           const data = await resp.json()
           if (data.trackData) {
             commit('currentTrack', data.trackData)
+            commit('progress', data.progress)
           } else commit('currentTrack', null)
           return data
       })
