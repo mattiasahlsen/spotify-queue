@@ -12,7 +12,6 @@ import search from './vuex/search'
 const store = new Vuex.Store({
   state: {
     error: null,
-    deviceId: null,
   },
   getters: {
     error: state => state.error || ''
@@ -32,9 +31,6 @@ const store = new Vuex.Store({
     clearError(state) {
       state.error = null
     },
-    deviceId(state, id) {
-      state.deviceId = id
-    }
   }
 })
 

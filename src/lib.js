@@ -4,7 +4,9 @@ import { router } from './main'
 
 export const checkStatus = async resp => {
   if (resp.status >= 400 && resp.status < 600) {
-    let msg = 'An error has occured.'
+    let msg
+    if (resp.status === 401) msg = 'You must be connected to Spotify to do that'
+    else msg = 'An error has occured on the server.'
 
     try {
       const body = await resp.json()

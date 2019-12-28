@@ -4,11 +4,14 @@ const morgan = require('morgan')
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
+const redis = require('redis')
+const session = require('express-session')
 
 const config = require('./config')
 const authController = require('./controllers/auth')
 const queueController = require('./controllers/queue')
 const spotifyController = require('./controllers/spotify')
+const { log, logErr } = require('./logger')
 
 const app = express()
 
@@ -26,7 +29,11 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cors({ origin: config.origin, credentials: true }))
 app.use(cookieParser())
 
-app.use(require('express-session')({
+const RedisStore = require('connect-redis')(session)
+const client = redis.createClient()
+
+app.use(session({
+  store: new RedisStore({ client }),
   secret: config.secret,
   resave: false,
   saveUninitialized: false,
@@ -56,7 +63,7 @@ app.get('/ping', function(req, res) {
 // will print stacktrace
 if (app.get('env') === 'development') {
   app.use(function(err, req, res, next) {
-    console.log(err)
+    logErr(err)
     res.status(err.status || 500).json(err)
   })
 }
@@ -64,7 +71,7 @@ if (app.get('env') === 'development') {
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-  console.log(err)
+  logErr(err)
   res.status(err.status || 500).end()
 })
 

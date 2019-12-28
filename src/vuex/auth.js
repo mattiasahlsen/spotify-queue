@@ -35,6 +35,7 @@ export default {
       return fetch(config.server + '/logout', getters.serverFetchOptions)
         .then(checkStatus).then(resp => {
           commit('authorized', false)
+          commit('owner', false)
         })
     },
   },

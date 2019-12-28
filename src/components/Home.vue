@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="home">
     <form @submit.prevent="connect" class="search-container spacing-y">
       <input
         class="search-bar"
@@ -17,21 +17,23 @@
     <h2 v-if="badQueueLink" class="error-text">
       Invalid queue link
     </h2>
+     
+    <p class="spacing-y">...or...</p>
 
-    <div class="new-queue">
+    <div class="spacing-y">
       <button
         v-if="authorized"
         class="btn btn-primary btn-big spacing-x"
         @click="newQueue"
       >
-        New Queue
+        Create new queue
       </button>
       <div v-else>
         <a
           class="btn btn-primary btn-big spacing-x"
           :href="loginUrl"
         >
-          Authenticate
+          Connect to Spotify
         </a>
         <p class="spacing-y">...to create queue</p>
       </div>
@@ -94,8 +96,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.new-queue {
-  margin: 1em 0;
+.home {
   text-align: center;
 }
 </style>

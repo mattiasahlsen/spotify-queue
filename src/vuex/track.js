@@ -19,6 +19,7 @@ export default {
           if (data.trackData) {
             commit('currentTrack', data.trackData)
             commit('progress', data.progress)
+            commit('isPlaying', data.isPlaying)
           } else commit('currentTrack', null)
           return data
       })

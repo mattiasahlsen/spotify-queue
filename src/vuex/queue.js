@@ -6,8 +6,10 @@ import { router } from '../main'
 export default {
   state: {
     loading: false,
-    owner: false,
     notFound: false,
+
+    owner: false,
+    accessToken: null,
 
     addedTracks: [],
   },
@@ -26,6 +28,7 @@ export default {
         .then(checkStatus).then(async resp => {
           const data = await resp.json()
           commit('owner', data.owner)
+          if (data.accessToken) commit('accessToken', data.accessToken)
           dispatch('fetchCurrent').catch(showErr)
           return data
       }).finally(() => commit('loadingQueue', false))
@@ -69,6 +72,10 @@ export default {
     owner(state, isOwner) {
       state.owner = isOwner
     },
+    accessToken(state, token) {
+      state.accessToken = token
+    },
+
     notFound(state, notFound) {
       state.notFound = notFound
     },

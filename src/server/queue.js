@@ -1,9 +1,11 @@
 const fetch = require('node-fetch')
-
 const config = require('./config')
+const { log, logErr } = require('./logger')
+
 const {
-  queueIdKey
-} = config
+  queueIdKey,
+  spotifyServer
+} = require('./config')
 const {
   generateRandomString,
 
@@ -18,7 +20,7 @@ const queues = {}
 
 const trackData = (id, queue) => {
   const fetchTrack = () => {
-    return fetch(config.spotifyServer + '/tracks/' + id,
+    return fetch(spotifyServer + '/tracks/' + id,
       fetchOptions(queue)
     )
   }
@@ -27,7 +29,7 @@ const trackData = (id, queue) => {
     .then(checkStatus)
     .then(resp => resp.json())
     .catch(err => {
-      console.log(err)
+      logErr(err)
       return res.status(500).end()
     })
 }
@@ -49,6 +51,8 @@ const newQueue = (ownerId, accessToken, refreshToken) => {
     isPlaying: false,
 
     sockets: {},
+
+    isRefreshing: false,
   }
   queues[queueId] = queue
   setTimeout(() => {

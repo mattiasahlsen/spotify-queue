@@ -2,6 +2,7 @@ const express = require('express')
 const fetch = require('node-fetch')
 const config = require('../config')
 const queryString = require('querystring')
+const { log, logErr } = require('../logger')
 
 const router = express.Router()
 
@@ -47,10 +48,14 @@ router.get('/newQueue', (req, res) => {
 
 router.use('/queue/*', requireQueue)
 
+
 router.get('/queue/data', (req, res) => {
-  res.json({
-    owner: req.owner,
-  })
+  const jsonResponse = {
+    owner: req.owner
+  }
+  if (req.owner) jsonResponse.accessToken = req.queue.accessToken
+
+  res.json(jsonResponse)
 })
 
 
@@ -71,27 +76,13 @@ router.get('/queue/current', async (req, res) => {
     if (trackData) return res.json({
       trackData,
       progress: queue.progress,
+      isPlaying: queue.isPlaying,
     })
+    else res.json({})
   } catch (err) {
-    console.log(err)
+    logErr(err)
     return res.status(500).end()
   }
-})
-router.get('/queue/next', (req, res) => {
-  if (!req.owner) return res.status(401).end()
-
-  const queue = req.queue
-  return res.json({
-    trackId: getNext(queue),
-  })
-})
-router.get('/queue/previous', (req, res) => {
-  if (!req.owner) return res.status(401).end()
-
-  const queue = req.queue
-  return res.json({
-    trackId: getPrevious(queue),
-  })
 })
 
 router.post('/queue/track', (req, res) => {
@@ -101,14 +92,6 @@ router.post('/queue/track', (req, res) => {
     req.queue.users[req.userId] = []
   }
   req.queue.users[req.userId].push(req.body.trackId)
-  return res.end()
-})
-
-router.post('/queue/progress', (req, res) => {
-  if (!req.owner) return res.status(401).end()
-
-  if (typeof req.body.progress !== 'number') return res.status(400).end()
-  req.queue.progress = req.body.progress
   return res.end()
 })
 

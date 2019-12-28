@@ -2,6 +2,7 @@ const express = require('express')
 const fetch = require('node-fetch')
 const config = require('../config')
 const queryString = require('querystring')
+const { log, logErr } = require('../logger')
 
 const router = express.Router()
 
@@ -49,8 +50,8 @@ router.get('/spotify/search', (req, res) => {
     .then(checkStatus)
     .then(async resp => res.json(await resp.json()))
     .catch(err => {
-      console.log(err)
-      return res.status(500).end()
+      logErr(err)
+      return res.status(err.status || 500).end()
     })
 })
 
@@ -64,9 +65,11 @@ router.get('/spotify/resume', (req, res) => {
   return myFetch(resumeQueue, req.queue)
     .then(resp => res.end())
     .catch(err => {
-      console.log(err)
-      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
-      return res.status(500).end()
+      const status  = err.status || 500
+      if (err.clientMessage) {
+        return res.status(status).json(error(err.clientMessage))
+      }
+      return res.status(status).end()
     })
 })
 
@@ -75,9 +78,11 @@ router.get('/spotify/pause', (req, res) => {
   return myFetch(pauseQueue, req.queue)
     .then(resp => res.end())
     .catch(err => {
-      console.log(err)
-      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
-      return res.status(500).end()
+      const status = err.status || 500
+      if (err.clientMessage) {
+        return res.status(status).json(error(err.clientMessage))
+      }
+      else return res.status(status).end()
     })
 })
 
@@ -86,9 +91,11 @@ router.get('/spotify/next', (req, res) => {
   return myFetch(nextTrack, req.queue)
     .then(resp => res.end())
     .catch(err => {
-      console.log(err)
-      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
-      return res.status(500).end()
+      const status = err.status || 500
+      if (err.clientMessage) {
+        return res.status(status).json(error(err.clientMessage))
+      }
+      else return res.status(status).end()
     })
 })
 
@@ -97,9 +104,11 @@ router.get('/spotify/previous', (req, res) => {
   return myFetch(previousTrack, req.queue)
     .then(resp => res.end())
     .catch(err => {
-      console.log(err)
-      if (err.clientMessage) return res.status(500).json(error(err.clientMessage))
-      return res.status(500).end()
+      const status = err.status || 500
+      if (err.clientMessage) {
+        return res.status(status).json(error(err.clientMessage))
+      }
+      return res.status(status).end()
     })
 })
 
@@ -112,17 +121,35 @@ router.get('/spotify/devices', (req, res) => {
       res.json({ devices: data.devices, deviceId: req.queue.deviceId })
     })
     .catch(err => {
-      console.log(err)
-      return res.status(500).end()
+      logErr(err)
+      return res.status(err.status || 500).end()
     })
 })
 
 router.post('/spotify/device', (req, res) => {
   const id = req.body.id
   if (typeof id !== 'string') return res.status(400).end()
-  
-  req.queue.deviceId = id
-  return res.end()
+
+  if (!req.queue.isPlaying) {
+    req.queue.deviceId = id
+    return res.end()
+  }
+
+  const url = config.spotifyServer + '/me/player'
+  const changeDevice = () => fetch(url, {
+    ...fetchOptions(req.queue),
+    body: JSON.stringify({ device_ids: [id] }),
+    method: 'PUT'
+  })
+  return myFetch(changeDevice, req.queue)
+    .then(resp => {
+      req.queue.deviceId = id
+      return res.end()
+    })
+    .catch(err => {
+      logErr(err)
+      return res.status(err.status || 500).end()
+    })
 })
 
 module.exports = router

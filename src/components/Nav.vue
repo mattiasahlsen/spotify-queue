@@ -37,7 +37,7 @@ export default {
 <style lang="scss" scoped>
 .nav {
   display: flex;
-  padding: 1em 2em;
+  padding: 0.5em;
   height: 3em;
   justify-content: space-between;
   align-items: center;

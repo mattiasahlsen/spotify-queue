@@ -6,6 +6,9 @@ export default {
     isPlaying: false,
     progress: 0,
     liveProgress: 0,
+
+    deviceId: null,
+    deviceError: null
   },
   getters: {
     isPlaying: state => state.isPlaying,
@@ -26,6 +29,8 @@ export default {
       return dispatch('control', 'resume')
     },
     async control({ state, commit, dispatch, getters}, endpoint) {
+      if (!state.deviceId) return commit('deviceError', 'No selected device')
+
       const path = '/spotify/' + endpoint
       return fetch(queueUrl(path), {
         ...getters.serverFetchOptions,
@@ -43,5 +48,13 @@ export default {
     liveProgress(state, ms) {
       state.liveProgress = ms
     },
+
+    deviceId(state, id) {
+      state.deviceId = id
+    },
+
+    deviceError(state, msg) {
+      state.deviceError = msg
+    }
   }
 }

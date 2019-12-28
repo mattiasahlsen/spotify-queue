@@ -70,6 +70,7 @@ h1, h2, h3, h4, h5, h6, p {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
 }
 
 .clickable {
@@ -112,7 +113,6 @@ button:disabled {
 .btn-standard {
   border-radius: 0px;
   font-size: 1.1em;
-  width: 8em;
 }
 .btn-error {
   color: $light-1;
@@ -149,7 +149,7 @@ button:disabled {
 }
 .search-bar {
   border: none;
-  font-size: 2em;
+  font-size: 1.2em;
   border: 1px solid $dark-1;
   padding: 0.1em;
   background: $light-1;
@@ -166,17 +166,15 @@ button:disabled {
 
 // Media queries
 
-@media (max-width: $sm-minus) {
-  .container {
-    width: 100%;
-  }
-}
 @media (min-width: $sm) {
   .container {
     width: 90%;
   }
 }
 @media (min-width: $md) {
+  .search-bar {
+    font-size: 2em;
+  }
   .container {
     width: 80%;
   }

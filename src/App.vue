@@ -108,6 +108,7 @@ export default {
     },
     queueId: function(val) {
       this.href = window.location.href
+      this.$store.commit('notFound', false)
       this.fetchQueue()
 
       this.socket.emit('queue', val)
@@ -136,16 +137,19 @@ export default {
     this.authenticate().then(() => {
       this.fetchQueue()
 
-      this.socket = io(config.server)
-      if (this.queueId) this.socket.emit('queue', this.queueId)
+      const socket = io(config.server)
+      this.socket = socket
+      if (this.queueId) socket.emit('queue', this.queueId)
 
-      this.socket.on('current', data => {
-        this.$store.commit('progress', data.progress)
+      socket.on('current', data => {
         this.$store.commit('currentTrack', data.track)
+        this.$store.commit('isPlaying', data.isPlaying)
       })
-      this.socket.on('status', data => {
+      socket.on('status', data => {
         this.$store.commit('progress', data.progress)
         this.$store.commit('isPlaying', data.isPlaying)
+      })
+      socket.on('disconnect', reason => {
       })
     }).catch(showErr)
   },

@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 const router = express.Router()
 const config = require('../config')
 const queryString = require('querystring')
+const { log, logErr } = require('../logger')
 
 const { generateRandomString, } = require('../lib')
 
@@ -27,7 +28,7 @@ router.get('/login', (req, res) => {
   res.cookie(stateKey, state)
   res.cookie(redirectKey, req.query.redirect)
 
-  const scope = 'user-read-playback-state user-modify-playback-state user-read-currently-playing streaming app-remote-control'
+  const scope = 'user-read-playback-state user-modify-playback-state'
   return res.redirect('https://accounts.spotify.com/authorize?' +
     queryString.stringify({
       response_type: 'code',
@@ -80,7 +81,7 @@ router.get('/callback', (req, res) => {
       body: formData,
     }).then(async resp => {
       if (resp.status !== 200) {
-        console.log('Spotify bad status when fetching token: ' + resp.status)
+        logErr(new Error('Spotify bad status when fetching token: ' + resp.status))
         return failureRedirect()
       }
       try {
@@ -111,7 +112,7 @@ router.get('/callback', (req, res) => {
         })
 
       } catch (err) {
-        console.log(err)
+        logErr(err)
         return failureRedirect()
       }
     })
