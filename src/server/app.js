@@ -57,6 +57,10 @@ app.get('/ping', function(req, res) {
   res.status(200).send('pong!')
 })
 
+app.get('/*', (req, res) => {
+  return res.sendFile(DIST + '/index.html')
+})
+
 // error handlers
 
 // development error handler
