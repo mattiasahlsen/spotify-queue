@@ -1,7 +1,7 @@
 # spotify-app
 
 ## deployed on
-https://spotifyfavourites.com
+https://spotifyqueue.com
 
 ## Project setup
 ```
