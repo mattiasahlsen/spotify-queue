@@ -6,8 +6,6 @@ export default {
   state: {
     authorized: false,
     userId: null,
-
-    loading: false,
   },
   getters: {
     serverFetchOptions: state => ({
@@ -36,6 +34,7 @@ export default {
         .then(checkStatus).then(resp => {
           commit('authorized', false)
           commit('owner', false)
+          commit('userId', null)
         })
     },
   },
@@ -46,9 +45,5 @@ export default {
     userId(state, userId) {
       state.userId = userId
     },
-
-    loadingToken(state, loading) {
-      state.loading = loading
-    }
   }
 }

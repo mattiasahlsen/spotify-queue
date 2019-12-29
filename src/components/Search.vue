@@ -2,14 +2,24 @@
   <div>
     <form @submit.prevent="search" class="search-container spacing-y">
       <input
+        type="search"
         placeholder="Search tracks..."
         v-model="searchString"
         class="search-bar spacing-right"
       >
-      <button
-        class="btn btn-standard search-button"
-        type="submit"
-      >Search</button>
+      <div class="search-buttons">
+        <button
+          class="btn btn-standard search-button spacing-bottom"
+          type="submit"
+        >Search</button>
+        <button
+          v-if="searchString.length > 0"
+          class="btn btn-standard"
+          @click="searchString = ''"
+        >
+          Clear
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -35,4 +45,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.search-buttons {
+  display: flex;
+  flex-direction: column;
+}
 </style>

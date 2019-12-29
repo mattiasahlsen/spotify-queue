@@ -1,14 +1,28 @@
 <template>
   <div class="nav">
-    <h1 @click="goHome" class="clickable-icon">Home</h1>
-    <div v-if="authorized && userId" class="nav-content">
+    <div class="logo">
+      <img src="/logo.png" @click="goHome" class="logo-image clickable">
+      <h4>In beta</h4>
+    </div>
+    <div v-if="authorized" class="nav-content">
       <button class="btn btn-secondary spacing-right" @click="logout">LOG OUT</button>
       <p class="username">{{userId}}</p>
+    </div>
+    <div v-else>
+      <a
+        class="btn btn-secondary spacing-right"
+        :href="loginUrl"
+      >
+        Connect to Spotify
+      </a>
     </div>
   </div>
 </template>
 
 <script>
+import querystring from 'querystring'
+import config from '../config'
+
 export default {
   data() {
     return {
@@ -16,6 +30,11 @@ export default {
     }
   },
   computed: {
+    loginUrl() {
+      return config.server + '/login?' + querystring.stringify({
+        redirect: window.location.origin + window.location.pathname
+      })
+    },
     authorized() {
       return this.$store.getters.authorized
     },
@@ -38,7 +57,6 @@ export default {
 .nav {
   display: flex;
   padding: 0.5em;
-  height: 3em;
   justify-content: space-between;
   align-items: center;
 }
@@ -55,5 +73,14 @@ export default {
 .user-image {
   height: 100%;
   border-radius: 50%;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  margin-right: 0.5em;
+}
+.logo-image {
+  height: 5em;
+  margin-right: 0.1em;
 }
 </style>

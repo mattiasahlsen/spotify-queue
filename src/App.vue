@@ -18,6 +18,7 @@
     <Nav></Nav>
 
     <div class="container">
+
       <div class="content-container">
         <div class="content">
 
@@ -40,6 +41,11 @@
               <Manage v-if="owner"/>
 
               <h2 class="spacing-y">Queue link</h2>
+              <p class="spacing-y">
+                Share this link with your friends so that they
+                can add tracks to the queue. They do not need
+                a Spotify account.
+              </p>
               <div class="queue-id">
                 <p>{{href}}</p>
                 <CopyButton :value="href" text="Copy sharable link"/>
@@ -59,6 +65,14 @@
         </div>
       </div>
     </div>
+
+    <footer class="footer">
+      <p class="footer-content">
+        Made by Mattias Ahlsén. Powered by the Spotify web API
+        and Vue.js. This is NOT an official Spotify
+        application and is NOT under the Spotify brand. 
+      </p>
+    </footer>
 
   </div>
 </template>
@@ -195,6 +209,7 @@ export default {
 
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   align-items: stretch;
 
   min-height: 100vh;
@@ -271,6 +286,17 @@ export default {
   margin-bottom: 0.4em;
   padding: 0.2em;
   border-radius: 1px;
+}
+
+.footer {
+  margin-top: 5em;
+  padding: 1em;
+  background-color: $dark-2;
+  display: flex;
+  justify-content: center;
+}
+.footer-content {
+  max-width: 40em;
 }
 
 </style>

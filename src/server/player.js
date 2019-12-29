@@ -21,7 +21,7 @@ const {
 
 let fetchCurrentlyPlaying
 fetchCurrentlyPlaying = (queue, refreshing) => {
-  queue.isRefreshing = false
+  if (refreshing) queue.isRefreshing = false
   if (!queue) return
 
   const LONG = 5000 // 5s
@@ -70,9 +70,12 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
       queue.isPlaying = data.is_playing
       queue.onQueue = true
     } else {
+      const wentOffQueue = queue.onQueue
       queue.onQueue = false
       queue.isPlaying = false
-      return
+
+      if (wentOffQueue) return
+      else return refresh(SHORT)
     }
 
     Object.values(queue.sockets).forEach(socket => {
@@ -83,12 +86,11 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
     })
 
     const msLeft = data.item.duration_ms - data.progress_ms
-    if (msLeft && msLeft < 2 * LONG) refresh(SHORT)
-    else refresh(LONG)
-    return
+    if (msLeft && msLeft < 2 * LONG) return refresh(SHORT)
+    else return refresh(LONG)
   }).catch(err => {
     logErr(err)
-    refresh(LONG)
+    return refresh(LONG)
   })
 }
 
@@ -97,6 +99,12 @@ const play = async (queue, options) => {
   const pause = options && options.pause
   const current = getCurrent(queue) || await getNext(queue)
 
+  if (!queue.deviceId) {
+    const err = new Error('No device selected.')
+    err.clientMessage = 'No device selected'
+    err.status = 404
+    throw err
+  }
   if (restart) queue.progress = 0
   if (!current && !pause) return
 
@@ -106,7 +114,7 @@ const play = async (queue, options) => {
     device_id: queue.deviceId
   })
 
-  const body = (pause || (queue.onQueue && !restart)) ? {} : {
+  const body = pause ? {} : {
     uris: ['spotify:track:' + current.id],
     position_ms: queue.progress,
   }

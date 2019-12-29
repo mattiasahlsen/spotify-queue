@@ -88,6 +88,9 @@ button:disabled {
 .spacing-right {
   margin-right: 0.25em;
 }
+.spacing-bottom {
+  margin-bottom: 0.25em;
+}
 .spacing-x {
   margin-right: 0.25em;
   margin-left: 0.25em;
@@ -134,7 +137,7 @@ button:disabled {
   color: $light-1;
   border: 2px solid $light-1;
 }
-.btn-secondary:hover:enabled {
+.btn-secondary:hover:enabled, a.btn-secondary:hover {
   color: $background;
   background-color: $light-1;
 }
@@ -144,7 +147,7 @@ button:disabled {
 
 .search-container {
   display: flex;
-  align-items: stretch;
+  align-items: flex-start;
   border-radius: 1px;
 }
 .search-bar {

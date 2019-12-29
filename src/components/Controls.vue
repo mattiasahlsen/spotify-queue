@@ -4,27 +4,27 @@
       icon="fast-backward"
       class="clickable-icon"
       size="3x"
-      @click="previous"
+      @click.prevent="previous"
     />
     <font-awesome-icon
       v-if="isPlaying"
       class="play clickable-icon"
       icon="pause-circle"
       size="4x"
-      @click="pause"
+      @click.prevent="pause"
     />
     <font-awesome-icon
       v-else
       class="play clickable-icon"
       icon="play-circle"
       size="4x"
-      @click="play"
+      @click.prevent="play"
     />
     <font-awesome-icon
       icon="fast-forward"
       class="clickable-icon"
       size="3x"
-      @click="next"
+      @click.prevent="next"
     />
   </div>
 </template>

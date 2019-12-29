@@ -20,6 +20,8 @@ import {
   faFastForward,
   faFastBackward,
   faSync,
+  faList,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
  
@@ -41,6 +43,8 @@ library.add(faPauseCircle)
 library.add(faFastForward)
 library.add(faFastBackward)
 library.add(faSync)
+library.add(faList)
+library.add(faTimes)
 
 export const router = new VueRouter({
   mode: 'history',

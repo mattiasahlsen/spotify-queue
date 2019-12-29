@@ -4,7 +4,7 @@ import config from '../config'
 export default {
   state: {
     currentTrack: null,
-    loading: null,
+    loading: false,
   },
   getters: {
     currentTrack: state => state.currentTrack,

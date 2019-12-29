@@ -3,7 +3,7 @@
     <h2>Currently playing</h2>
     <div class="item-container">
       <clip-loader
-        v-if="loadingCurrent"
+        v-if="loading"
         class="spacing"
         color="#1cca59"
         :loading="true"
@@ -37,8 +37,8 @@ export default {
     ClipLoader
   },
   computed: {
-    loadingCurrent() {
-      return this.$store.state.track.loading
+    loading() {
+      return this.$store.state.track.loading || this.$store.state.queue.loading
     },
     currentTrack() {
       return this.$store.state.track.currentTrack

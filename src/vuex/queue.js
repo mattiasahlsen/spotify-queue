@@ -22,7 +22,7 @@ export default {
       return fetch(queueUrl('/queue/data'), getters.serverFetchOptions)
         .then(resp => {
           if (resp.status === 404) commit('notFound', true)
-          else if (resp.status === 200) commit('notFound', false)
+          else commit('notFound', false)
           return resp
         })
         .then(checkStatus).then(async resp => {
