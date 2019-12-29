@@ -39,7 +39,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     maxAge: config.sessionMaxAge,
-    secure: !DEV,
+    secure: false,
   },
 }))
 

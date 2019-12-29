@@ -89,6 +89,7 @@ router.get('/callback', (req, res) => {
         const accessToken = data.access_token
         const refreshToken = data.refresh_token
 
+
         if (!accessToken || !refreshToken) {
           return failureRedirect()
         }
@@ -121,6 +122,7 @@ router.get('/callback', (req, res) => {
 
 router.get('/authenticate', (req, res, next) => {
   let userId = req.session[userIdKey]
+
 
   if (!userId) {
     userId = generateRandomString(16)
