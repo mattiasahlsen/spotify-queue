@@ -45,7 +45,7 @@ app.use(session({
 
 
 // routes
-if (process.env.NODE_ENV === 'production') app.use(express.static(DIST))
+app.use(express.static(DIST))
 
 
 // ORDER MATTERS

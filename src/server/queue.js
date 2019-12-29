@@ -14,6 +14,7 @@ const {
   myFetch,
 
   error,
+  requireAuth,
 } = require('./lib')
 
 const queues = {}
@@ -94,21 +95,23 @@ const getNext = async queue => {
 }
 
 const requireQueue = (req, res, next) => {
-  const queueId = req.query.queueId
-  if (!queueId) return res.status(400).json(error('No queue id specified.'))
+  requireAuth(req, res, () => {
+    const queueId = req.query.queueId
+    if (!queueId) return res.status(400).json(error('No queue id specified.'))
 
-  const queue = queues[queueId]
-  if (!queue) {
-    res.clearCookie(queueIdKey)
-    return res.status(404).json(error('Queue not found.'))
-  }
+    const queue = queues[queueId]
+    if (!queue) {
+      res.clearCookie(queueIdKey)
+      return res.status(404).json(error('Queue not found.'))
+    }
 
-  req.queueId = queueId
-  req.queue = queue
+    req.queueId = queueId
+    req.queue = queue
 
-  req.owner = (queue.owner === req.userId)
+    req.owner = (queue.owner === req.userId)
 
-  next()
+    next()
+  })
 }
 
 module.exports = {

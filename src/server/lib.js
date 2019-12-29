@@ -71,6 +71,15 @@ const myFetch = (sendRequest, queue) => {
   })
 }
 
+const requireAuth = (req, res, next) => {
+  if (!req.session) return res.status(400).json(error('Authentication error.'))
+  if (!req.session[userIdKey]) return res.status(401).end()
+
+  req.userId = req.session[userIdKey]
+  next()
+
+}
+
 module.exports = {
   generateRandomString,
   
@@ -81,4 +90,6 @@ module.exports = {
   checkStatus,
   fetchOptions,
   fetchError,
+
+  requireAuth,
 }

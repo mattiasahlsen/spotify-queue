@@ -9,6 +9,7 @@ const router = express.Router()
 const {
   generateRandomString,
   error,
+  requireAuth,
 } = require('../lib')
 const {
   queues,
@@ -33,7 +34,7 @@ const testTracks = [
   '5Nu5Uyoauauy9LFePYL1Z3' // late night,
 ]
 
-router.get('/newQueue', (req, res) => {
+router.get('/newQueue', requireAuth, (req, res) => {
   const accessToken = req.session[accessTokenKey]
   const refreshToken = req.session[refreshTokenKey]
   if (!accessToken || !refreshToken) return res.status(401).json(error(

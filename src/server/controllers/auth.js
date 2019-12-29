@@ -139,13 +139,5 @@ router.get('/logout', (req, res, next) => {
   res.end()
 })
 
-router.use('/*', (req, res, next) => {
-  if (!req.session) return res.status(400).end()
-  if (!req.session[userIdKey]) return res.status(401).end()
-
-  req.userId = req.session[userIdKey]
-  next()
-
-})
 
 module.exports = router
