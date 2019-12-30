@@ -42,7 +42,7 @@ router.get('/newQueue', requireAuth, (req, res) => {
   ))
 
   const queueId = newQueue(req.userId, accessToken, refreshToken)
-  queues[queueId].users[req.userId] = testTracks.slice()
+  // queues[queueId].users[req.userId] = testTracks.slice()
 
   res.json({ queueId })
 })

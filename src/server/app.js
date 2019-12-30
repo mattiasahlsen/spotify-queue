@@ -39,7 +39,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     maxAge: config.sessionMaxAge,
-    secure: !DEV,
+    secure: false,
   },
 }))
 
@@ -55,6 +55,10 @@ app.use('/', spotifyController)
 
 app.get('/ping', function(req, res) {
   res.status(200).send('pong!')
+})
+
+app.get('/*', (req, res) => {
+  return res.sendFile(DIST + '/index.html')
 })
 
 // error handlers
