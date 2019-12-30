@@ -234,7 +234,7 @@ export default {
   max-width: 100%;
 }
 .content {
-  margin: 0 0.5em;
+  margin: 0 0.75em;
 }
 
 .items {
@@ -299,4 +299,9 @@ export default {
   max-width: 40em;
 }
 
+@media (max-width: $sm) {
+  #app {
+    font-size: 0.8em;
+  }
+}
 </style>

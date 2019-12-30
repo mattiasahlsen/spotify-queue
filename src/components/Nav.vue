@@ -13,7 +13,7 @@
         class="btn btn-secondary spacing-right"
         :href="loginUrl"
       >
-        Connect to Spotify
+        CONNECT TO SPOTIFY
       </a>
     </div>
   </div>
@@ -65,6 +65,7 @@ export default {
   flex-direction: row;
   height: 100%;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .username {
@@ -78,6 +79,7 @@ export default {
   display: flex;
   align-items: center;
   margin-right: 0.5em;
+  flex-wrap: wrap;
 }
 .logo-image {
   height: 5em;

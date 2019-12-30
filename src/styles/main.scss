@@ -88,6 +88,12 @@ button:disabled {
 .spacing-right {
   margin-right: 0.25em;
 }
+.spacing-left {
+  margin-left: 0.25em;
+}
+.spacing-top {
+  margin-top: 0.25em;
+}
 .spacing-bottom {
   margin-bottom: 0.25em;
 }
@@ -145,22 +151,6 @@ button:disabled {
   font-size: 1.5em;
 }
 
-.search-container {
-  display: flex;
-  align-items: flex-start;
-  border-radius: 1px;
-}
-.search-bar {
-  border: none;
-  font-size: 1.2em;
-  border: 1px solid $dark-1;
-  padding: 0.1em;
-  background: $light-1;
-  color: $dark-1;
-  min-width: 0;
-  flex: 1 0 0;
-}
-
 .error-text {
   margin: 0.5em 0 1em;
   text-align: center;
@@ -175,9 +165,6 @@ button:disabled {
   }
 }
 @media (min-width: $md) {
-  .search-bar {
-    font-size: 2em;
-  }
   .container {
     width: 80%;
   }

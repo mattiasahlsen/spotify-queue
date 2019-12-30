@@ -4,7 +4,7 @@
     <div class="options">
       <Devices/>
       <button
-        class="btn btn-standard btn-error spacing"
+        class="btn btn-standard btn-error delete-button"
         @click="deleteQueue"
       >
         Delete queue
@@ -41,6 +41,9 @@ export default {
 .options {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
+}
+.delete-button {
+  margin-left: 0.5em;
 }
 </style>

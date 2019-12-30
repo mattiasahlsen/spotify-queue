@@ -1,5 +1,6 @@
 <template>
   <div class="home">
+    <!--
     <form @submit.prevent="connect" class="search-container spacing-y">
       <input
         class="search-bar"
@@ -19,8 +20,9 @@
     </h2>
      
     <p class="spacing-y">...or...</p>
+    -->
 
-    <div class="spacing-y">
+    <div>
       <button
         v-if="authorized"
         class="btn btn-primary btn-big spacing-x"
