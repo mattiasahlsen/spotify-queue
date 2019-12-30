@@ -9,7 +9,7 @@ const { generateRandomString, } = require('../lib')
 
 const dev = process.env.NODE_ENV === 'development'
 
-const redirectUri = (dev ? config.server : config.origin) + '/callback'
+const redirectUri = config.server + '/callback'
 
 const {
   stateKey,

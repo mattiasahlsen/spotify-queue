@@ -26,7 +26,7 @@ if (DEV) app.use(morgan('dev'))
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(cors({ origin: config.origin, credentials: true }))
+if (DEV) app.use(cors({ origin: config.origin, credentials: true }))
 app.use(cookieParser())
 
 const RedisStore = require('connect-redis')(session)

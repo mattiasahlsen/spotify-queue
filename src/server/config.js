@@ -38,6 +38,7 @@ const config = {
   spotifyServer: 'https://api.spotify.com/v1',
 }
 config.origin = process.env.VUE_APP_ORIGIN || 'http://localhost:8080'
-config.server = `${config.protocol}://${config.host}:${config.port}`
+config.server = process.env.VUE_APP_SERVER ||
+  `${config.protocol}://${config.host}:${config.port}`
 
 module.exports = config
