@@ -39,6 +39,7 @@ const newQueue = (ownerId, accessToken, refreshToken) => {
   const queueId = generateRandomString(32)
 
   const queue = {
+    id: queueId,
     accessToken,
     refreshToken,
     owner: ownerId,
@@ -58,7 +59,7 @@ const newQueue = (ownerId, accessToken, refreshToken) => {
   queues[queueId] = queue
   setTimeout(() => {
     delete queues[queueId]
-  }, 1000 * 3600 * 24) // delete after 24 hours
+  }, 1000 * 3600 * 48) // delete after 48 hours
 
   return queueId
 }

@@ -155,13 +155,10 @@ export default {
       this.socket = socket
       if (this.queueId) socket.emit('queue', this.queueId)
 
-      socket.on('current', data => {
-        this.$store.commit('currentTrack', data.track)
-        this.$store.commit('isPlaying', data.isPlaying)
-      })
       socket.on('status', data => {
         this.$store.commit('progress', data.progress)
         this.$store.commit('isPlaying', data.isPlaying)
+        if (data.track) this.$store.commit('currentTrack', data.track)
       })
       socket.on('disconnect', reason => {
       })

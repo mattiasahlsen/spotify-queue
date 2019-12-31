@@ -148,9 +148,10 @@ const play = async (queue, options) => {
       throw err
     })
     .then(resp => {
-      Object.values(queue.sockets).forEach(socket => socket.emit('current', {
+      Object.values(queue.sockets).forEach(socket => socket.emit('status', {
         track: current,
         isPlaying: !pause,
+        progress: restart ? 0 : undefined
       }))
       if (!queue.isRefreshing) {
         queue.isRefreshing = true
