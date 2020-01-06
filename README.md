@@ -1,7 +1,7 @@
 # spotify-app
 
 ## deployed on
-https://spotifyqueue.com
+https://collabqueue.com
 
 ## Project setup
 ```
