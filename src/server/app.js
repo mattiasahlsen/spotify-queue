@@ -22,11 +22,13 @@ const DEV = process.env.NODE_ENV === 'development'
 // uncomment after placing your favicon in /public
 // app.use(favicon(__dirname + '/public/favicon.ico'))
 
-if (DEV) app.use(morgan('dev'))
+if (DEV) {
+  app.use(morgan('dev'))
+  app.use(cors({ origin: true, credentials: true }))
+}
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-if (DEV) app.use(cors({ origin: config.origin, credentials: true }))
 app.use(cookieParser())
 
 const RedisStore = require('connect-redis')(session)
