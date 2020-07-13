@@ -16,16 +16,18 @@ const {
 const {
   getPrevious,
   getCurrent,
-  getNext
+  getNext,
+  seeNext,
 } = require('./queue')
 
+let queuedNext = false
 let fetchCurrentlyPlaying
 fetchCurrentlyPlaying = (queue, refreshing) => {
   if (refreshing) queue.isRefreshing = false
   if (!queue) return
 
   const LONG = 5000 // 5s
-  const SHORT = 500 // 1s
+  const SHORT = 500 // 0.5s
 
   const refresh = refreshTime => {
     if (refreshing) {
@@ -39,7 +41,7 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
     fetchOptions(queue)
   )
   return myFetch(fetchPlayer, queue).then(checkStatus).then(async resp => {
-    const current = getCurrent(queue)
+    let current = getCurrent(queue)
     if (!current) return
     let data
 
@@ -55,21 +57,31 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
       return refresh(LONG)
     }
 
+    const msLeft = data.item.duration_ms - data.progress_ms
+
+    const next = await seeNext(queue)
+    if (next && data.item.id === next.id) {
+      // move to next song
+      current = await getNext(queue)
+      queuedNext = false
+    }
 
     // on queue
     if (data.item.id === current.id) {
-      // next song
-      if (queue.progress > data.progress_ms &&
-        data.progress_ms === 0 &&
-        !data.is_playing
-      ) {
-        playNext(queue)
+      if (msLeft && msLeft < 4 * LONG) {
+        if (!queuedNext) {
+          queueNext(queue)
+          queuedNext = true
+        }
+      } else {
+        queuedNext = false
       }
 
       queue.progress = data.progress_ms
       queue.isPlaying = data.is_playing
       queue.onQueue = true
     } else {
+      queuedNext = false
       const wentOffQueue = queue.onQueue
       queue.onQueue = false
       queue.isPlaying = false
@@ -80,14 +92,17 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
 
     Object.values(queue.sockets).forEach(socket => {
       socket.emit('status', {
+        track: current,
         progress: queue.progress,
         isPlaying: queue.isPlaying,
       })
     })
 
-    const msLeft = data.item.duration_ms - data.progress_ms
-    if (msLeft && msLeft < 2 * LONG) return refresh(SHORT)
-    else return refresh(LONG)
+    if (msLeft && msLeft < 2 * LONG) {
+      return refresh(SHORT)
+    } else {
+      return refresh(LONG)
+    }
   }).catch(err => {
     logErr(err)
     return refresh(LONG)
@@ -97,7 +112,9 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
 const play = async (queue, options) => {
   const restart = options && options.restart
   const pause = options && options.pause
-  const current = getCurrent(queue) || await getNext(queue)
+  const queueNext = options && options.queueNext
+
+  const current = queueNext || (getCurrent(queue) || await getNext(queue))
 
   if (!queue.deviceId) {
     const err = new Error('No device selected.')
@@ -108,21 +125,26 @@ const play = async (queue, options) => {
   if (restart) queue.progress = 0
   if (!current && !pause) return
 
-  let url = spotifyServer +
-    '/me/player/' + (pause ? 'pause' : 'play') 
-  if (queue.deviceId) url += '?' + queryString.stringify({
-    device_id: queue.deviceId
-  })
+  let url = spotifyServer + '/me/player/'
+  if (queueNext) url += 'queue'
+  else url += (pause ? 'pause' : 'play') 
 
-  const body = pause ? {} : {
+  if (queue.deviceId || queueNext) {
+    const query = {}
+    if (queue.deviceId) query['device_id'] = queue.deviceId
+    if (queueNext) query['uri'] = 'spotify:track:' + current.id
+    url += '?' + queryString.stringify(query)
+  }
+
+  const body = (queueNext || pause) ? undefined : {
     uris: ['spotify:track:' + current.id],
     position_ms: queue.progress,
   }
 
   return fetch(url, {
     ...fetchOptions(queue),
-    method: 'PUT',
-    body: pause ? undefined : JSON.stringify(body),
+    method: queueNext ? 'POST' : 'PUT',
+    body: (pause || queueNext) ? undefined : JSON.stringify(body),
   }).then(checkStatus)
     .catch(async err => {
       let data
@@ -148,11 +170,6 @@ const play = async (queue, options) => {
       throw err
     })
     .then(resp => {
-      Object.values(queue.sockets).forEach(socket => socket.emit('status', {
-        track: current,
-        isPlaying: !pause,
-        progress: restart ? 0 : undefined
-      }))
       if (!queue.isRefreshing) {
         queue.isRefreshing = true
         fetchCurrentlyPlaying(queue, true)
@@ -175,6 +192,15 @@ const playNext = async queue => {
 const playPrevious = queue => {
   if (queue.progress < 3000) getPrevious(queue)
   return play(queue, { restart: true })
+}
+const queueNext = async queue => {
+  const next = await seeNext(queue)
+  if (!next) return
+
+  return play(queue, {
+    queueNext: next,
+  })
+
 }
 
 const pause = queue => play(queue, { pause: true })

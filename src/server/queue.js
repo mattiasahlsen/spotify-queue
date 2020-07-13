@@ -94,6 +94,20 @@ const getNext = async queue => {
   queue.played.push(track)
   return track
 }
+const seeNext = async queue => {
+  if (queue.index < queue.played.length - 1) return queue.played[queue.index + 1]
+
+  const userQueues = Object.values(queue.users).filter(queue => queue.length > 0)
+  if (userQueues.length === 0) return null
+
+  const userQueue = userQueues[Math.floor(Math.random() * userQueues.length)]
+
+  const track = await trackData(userQueue[0], queue)
+  userQueue.shift() // success
+
+  queue.played.push(track)
+  return track
+}
 
 const requireQueue = (req, res, next) => {
   requireAuth(req, res, () => {
@@ -123,4 +137,5 @@ module.exports = {
   getPrevious,
   getCurrent,
   getNext,
+  seeNext,
 }
