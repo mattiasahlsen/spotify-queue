@@ -2,7 +2,6 @@
   <div class="nav">
     <div class="logo">
       <img src="/logo.png" @click="goHome" class="logo-image clickable">
-      <h4>In beta</h4>
     </div>
     <div v-if="authorized" class="nav-content">
       <button class="btn btn-secondary spacing-right" @click="logout">LOG OUT</button>
