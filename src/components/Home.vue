@@ -42,6 +42,7 @@
     </div>
 
     <div class="description">
+      <h3>How to use</h3>
       <ol>
         <li>Connect to Spotify.</li>
         <li>Create new queue.</li>
@@ -61,6 +62,21 @@
         <li>Now fading to the next song is supported.</li>
         <li>Displays next song and the upcoming songs in the queue.</li>
       </ul>
+
+      <p>
+        To report bugs, or if you have suggestions of new features,
+        either go to the
+        <a
+         target="_blank"
+         href="https://github.com/mattiasahlsen/spotify-queue"
+        >
+        github page
+        </a><br>
+        or email me at
+        <a target="_blank" @click.prevent="openMail">
+          mattias.ahlsen@gmail.com
+        </a>
+      </p>
     </div>
 
   </div>
@@ -89,6 +105,10 @@ export default {
     },
   },
   methods: {
+    openMail() {
+      window.location.href =
+      "mailto:mattias.ahlsen@gmail.com?subject=Subject&body=Message%20goes%20here";
+    },
     connect() {
       const link = this.queueLink.includes('http') ?
         this.queueLink : 'http://' + this.queueLink

@@ -33,6 +33,16 @@ h1, h2, h3, h4, h5, h6, p {
   padding: 0;
 }
 
+a {
+  color: $primary;
+  font-weight: 600;
+  transition: all 0.1s;
+  &:hover {
+    font-size: 1.1em;
+    cursor: pointer;
+  }
+}
+
 // Classes
 .item {
   margin: 0.5em;
