@@ -19,7 +19,16 @@ const {
 
 const queues = {}
 
+let trackCache = {}
+const twentyFourHours = 24 * 3600 * 1000
+const clearTrackCache = () => {
+  trackCache = {}
+}
+setInterval(clearTrackCache, twentyFourHours)
+
 const trackData = (id, queue) => {
+  if (trackCache[id]) return trackCache[id]
+
   const fetchTrack = () => {
     return fetch(spotifyServer + '/tracks/' + id,
       fetchOptions(queue)
@@ -28,7 +37,11 @@ const trackData = (id, queue) => {
 
   return myFetch(fetchTrack, queue)
     .then(checkStatus)
-    .then(resp => resp.json())
+    .then(async resp => {
+      const data = await resp.json()
+      trackCache[id] = data
+      return data
+    })
     .catch(err => {
       logErr(err)
       return res.status(500).end()
@@ -78,12 +91,16 @@ const getCurrent = queue => {
   return track
 }
 
+const getUserQueues = queue =>
+  Object.values(queue.users)
+    .filter(queue => queue.length > 0)
+
 const getNext = async queue => {
   queue.progress = 0
   if (queue.index < queue.played.length) queue.index++
   if (queue.index < queue.played.length) return queue.played[queue.index]
 
-  const userQueues = Object.values(queue.users).filter(queue => queue.length > 0)
+  const userQueues = getUserQueues(queue)
   if (userQueues.length === 0) return null
 
   const userQueue = userQueues[Math.floor(Math.random() * userQueues.length)]
@@ -97,7 +114,7 @@ const getNext = async queue => {
 const seeNext = async queue => {
   if (queue.index < queue.played.length - 1) return queue.played[queue.index + 1]
 
-  const userQueues = Object.values(queue.users).filter(queue => queue.length > 0)
+  const userQueues = getUserQueues(queue)
   if (userQueues.length === 0) return null
 
   const userQueue = userQueues[Math.floor(Math.random() * userQueues.length)]
@@ -107,6 +124,16 @@ const seeNext = async queue => {
 
   queue.played.push(track)
   return track
+}
+
+const nextSong = queue => {
+  return queue.played[queue.index + 1]
+}
+const comingUp = async queue => {
+  return Promise.all(
+    getUserQueues(queue)
+      .map(userQueue => trackData(userQueue[0], queue))
+  )
 }
 
 const requireQueue = (req, res, next) => {
@@ -138,4 +165,7 @@ module.exports = {
   getCurrent,
   getNext,
   seeNext,
+  getUserQueues,
+  nextSong,
+  comingUp,
 }

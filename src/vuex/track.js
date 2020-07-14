@@ -5,6 +5,9 @@ export default {
   state: {
     currentTrack: null,
     loading: false,
+
+    nextTrack: null,
+    comingUp: null,
   },
   getters: {
     currentTrack: state => state.currentTrack,
@@ -32,6 +35,13 @@ export default {
     },
     loadingCurrent(state, loading) {
       state.loading = loading
+    },
+
+    nextTrack(state, track) {
+      state.nextTrack = track
+    },
+    comingUp(state, tracks) {
+      state.comingUp = tracks
     }
   }
 }

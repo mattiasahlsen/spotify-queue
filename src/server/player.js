@@ -18,6 +18,9 @@ const {
   getCurrent,
   getNext,
   seeNext,
+  getUserQueues,
+  comingUp,
+  nextSong,
 } = require('./queue')
 
 let queuedNext = false
@@ -68,7 +71,7 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
 
     // on queue
     if (data.item.id === current.id) {
-      if (msLeft && msLeft < 4 * LONG) {
+      if (msLeft && msLeft < 5 * LONG) {
         if (!queuedNext) {
           queueNext(queue)
           queuedNext = true
@@ -90,11 +93,19 @@ fetchCurrentlyPlaying = (queue, refreshing) => {
       else return refresh(SHORT)
     }
 
-    Object.values(queue.sockets).forEach(socket => {
+    Object.values(queue.sockets).forEach(async socket => {
+      let songsInQueue
+      try {
+        songsInQueue = await comingUp(queue)
+      } catch (err) {
+        songsInQueue = []
+      }
       socket.emit('status', {
         track: current,
         progress: queue.progress,
         isPlaying: queue.isPlaying,
+        comingUp: songsInQueue,
+        nextSong: nextSong(queue)
       })
     })
 

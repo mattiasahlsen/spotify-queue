@@ -55,6 +55,26 @@
               <div class="spacing">
                 <div class="items">
                   <Current class="spacing-y"/>
+
+                  <h2>Up next</h2>
+                  <Track
+                    v-if="nextTrack"
+                    :track="nextTrack"
+                    :current="false"
+                    class="item-container"
+                  />
+
+                  <h3>In queue</h3>
+                  <p>These songs will be shuffled between.</p>
+
+                  <Track 
+                    v-for="track in comingUp"
+                    :key="track.id"
+                    :track="track"
+                    :current="false"
+                    class="item-container"
+                  />
+
                   <Search class="spacing-y"/>
                   <Tracks class="spacing-y"/>
                 </div>
@@ -84,6 +104,7 @@ import io from 'socket.io-client'
 import Nav from './components/Nav'
 import Manage from './components/Manage'
 import Current from './components/Current'
+import Track from './components/Track'
 import Tracks from './components/Tracks'
 import Search from './components/Search'
 import CopyButton from './components/CopyButton'
@@ -99,6 +120,7 @@ export default {
   name: 'app',
   components: {
     Tracks,
+    Track,
     Nav,
     Manage,
     Current,
@@ -129,6 +151,14 @@ export default {
     }
   },
   computed: {
+    nextTrack() {
+      console.log(this.$store.state.track.nextTrack)
+      return this.$store.state.track.nextTrack
+    },
+    comingUp() {
+      return this.$store.state.track.comingUp
+    },
+
     loading() {
       return this.$store.state.queue.loading
     },
@@ -159,6 +189,13 @@ export default {
         this.$store.commit('progress', data.progress)
         this.$store.commit('isPlaying', data.isPlaying)
         if (data.track) this.$store.commit('currentTrack', data.track)
+
+        if (data.nextSong) {
+          this.$store.commit('nextTrack', data.nextSong)
+        }
+        if (data.comingUp) {
+          this.$store.commit('comingUp', data.comingUp)
+        }
       })
       socket.on('disconnect', reason => {
       })
