@@ -55,6 +55,12 @@
         </li>
         <li>Only the host of the queue needs a Spotify account!</li>
       </ul>
+
+      <h4>New features:</h4>
+      <ul>
+        <li>Now fading to the next song is supported.</li>
+        <li>Displays next song and the upcoming songs in the queue.</li>
+      </ul>
     </div>
 
   </div>
