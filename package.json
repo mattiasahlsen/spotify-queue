@@ -22,7 +22,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "kind-of": "^6.0.3",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "morgan": "^1.9.1",
     "node-fetch": "^2.6.1",
     "querystring": "^0.2.0",
